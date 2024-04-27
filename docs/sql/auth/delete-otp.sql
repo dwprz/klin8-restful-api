@@ -1,0 +1,1 @@
+DELETE FROM otp WHERE email = 'abcdefg';

@@ -1,0 +1,547 @@
+{
+  "openapi": "3.0.2",
+  "info": {
+    "title": "User API Spesification",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/api/users": {
+      "get": {
+        "description": "get users by role *route for admin",
+        "parameters": [
+          {
+            "name": "role",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": ["ADMIN", "USER"]
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "example": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/users-response"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400"
+          },
+          "401": {
+            "$ref": "#/components/responses/401"
+          },
+          "403": {
+            "$ref": "#/components/responses/403"
+          },
+          "404": {
+            "$ref": "#/components/responses/404"
+          },
+          "500": {
+            "$ref": "#/components/responses/500"
+          }
+        }
+      }
+    },
+    "/api/users/current": {
+      "patch": {
+        "description": "* route for user and admin",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/accessToken"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["password"],
+                "properties": {
+                  "fullName": {
+                    "type": "string",
+                    "example": "New John Doe"
+                  },
+                  "address": {
+                    "type": "string",
+                    "example": "Goatan Street, Northen District, Pantura State"
+                  },
+                  "whatsapp": {
+                    "type": "string",
+                    "example": "08123456789"
+                  },
+                  "password": {
+                    "type": "string",
+                    "example": "example password"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/user-response"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400"
+          },
+          "401": {
+            "$ref": "#/components/responses/401"
+          },
+          "403": {
+            "$ref": "#/components/responses/403"
+          },
+          "404": {
+            "$ref": "#/components/responses/404"
+          },
+          "409": {
+            "$ref": "#/components/responses/409"
+          },
+          "500": {
+            "$ref": "#/components/responses/500"
+          }
+        }
+      }
+    },
+    "/api/users/current/email": {
+      "patch": {
+        "description": "* route for user and admin",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/accessToken"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["newEmail", "password"],
+                "properties": {
+                  "newEmail": {
+                    "type": "string",
+                    "example": "johndoe123@gmail.com"
+                  },
+                  "password": {
+                    "type": "string",
+                    "example": "example password"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "headers": {
+              "Set-Cookie": {
+                "schema": {
+                  "type": "array",
+                  "example": [
+                    "accessToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MjA2LCJ1c2VyTmFtZSI6IlVTRVJURVNUMTIzIiwicm9sZSI6IlVTRVIiLCJpYXQiOjE3MTM1MTIzMzcsImV4cCI6MTcxMzUxNDEzN30._dVfVSGEYKKQc05jtbm-nhx0xY-bpwLf1pMSFDE0cTc; Path=/; HttpOnly"
+                  ]
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/user-response"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400"
+          },
+          "401": {
+            "$ref": "#/components/responses/401"
+          },
+          "403": {
+            "$ref": "#/components/responses/403"
+          },
+          "404": {
+            "$ref": "#/components/responses/404"
+          },
+          "409": {
+            "$ref": "#/components/responses/409"
+          },
+          "500": {
+            "$ref": "#/components/responses/500"
+          }
+        }
+      }
+    },
+    "/api/users/current/password": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/accessToken"
+        }
+      ],
+      "patch": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "newPassword": {
+                    "type": "string",
+                    "example": "new example password"
+                  },
+                  "password": {
+                    "type": "string",
+                    "example": "example password"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "updated password successfully"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400"
+          },
+          "401": {
+            "$ref": "#/components/responses/401"
+          },
+          "403": {
+            "$ref": "#/components/responses/403"
+          },
+          "404": {
+            "$ref": "#/components/responses/404"
+          },
+          "500": {
+            "$ref": "#/components/responses/500"
+          }
+        }
+      }
+    },
+    "/api/users/current/photo-profile": {
+      "patch": {
+        "description": "* route for user and admin",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/accessToken"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": ["photoProfile"],
+                "properties": {
+                  "photoProfile": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
+              },
+              "encoding": {
+                "photoProfile": {
+                  "contentType": "image/jpeg, image/png"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/user-response"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400"
+          },
+          "401": {
+            "$ref": "#/components/responses/401"
+          },
+          "403": {
+            "$ref": "#/components/responses/403"
+          },
+          "404": {
+            "$ref": "#/components/responses/404"
+          },
+          "500": {
+            "$ref": "#/components/responses/500"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "users-response": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "userId": {
+                  "type": "number",
+                  "example": 1
+                },
+                "email": {
+                  "type": "string",
+                  "example": "johndoe123@gmail.com"
+                },
+                "fullName": {
+                  "type": "string",
+                  "example": "John Doe"
+                },
+                "role": {
+                  "type": "string",
+                  "enum": ["ADMIN", "USER"]
+                },
+                "photoProfile": {
+                  "type": "string",
+                  "nullable": true,
+                  "example": null
+                },
+                "whatsapp": {
+                  "type": "string",
+                  "nullable": true,
+                  "example": null
+                },
+                "address": {
+                  "type": "string",
+                  "nullable": true,
+                  "example": null
+                },
+                "createdAt": {
+                  "type": "string",
+                  "format": "date-time",
+                  "example": "2024-04-19T06:58:27.858Z"
+                },
+                "updatedAt": {
+                  "type": "string",
+                  "format": "date-time",
+                  "nullable": true,
+                  "example": "2024-04-19T06:58:27.858Z"
+                }
+              }
+            }
+          }
+        }
+      },
+      "user-response": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "object",
+            "properties": {
+              "userId": {
+                "type": "number",
+                "example": 1
+              },
+              "email": {
+                "type": "string",
+                "example": "johndoe123@gmail.com"
+              },
+              "fullName": {
+                "type": "string",
+                "example": "John Doe"
+              },
+              "role": {
+                "type": "string",
+                "enum": ["ADMIN", "USER"]
+              },
+              "photoProfile": {
+                "type": "string",
+                "nullable": true,
+                "example": null
+              },
+              "whatsapp": {
+                "type": "string",
+                "nullable": true,
+                "example": null
+              },
+              "address": {
+                "type": "string",
+                "nullable": true,
+                "example": null
+              },
+              "createdAt": {
+                "type": "string",
+                "format": "date-time",
+                "example": "2024-04-19T06:58:27.858Z"
+              },
+              "updatedAt": {
+                "type": "string",
+                "format": "date-time",
+                "nullable": true,
+                "example": "2024-04-19T06:58:27.858Z"
+              }
+            }
+          }
+        }
+      }
+    },
+    "parameters": {
+      "accessToken": {
+        "name": "accessToken",
+        "in": "cookie",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "example": "accessToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MjA2LCJ1c2VyTmFtZSI6IlVTRVJURVNUMTIzIiwicm9sZSI6IlVTRVIiLCJpYXQiOjE3MTM1MTIzMzcsImV4cCI6MTcxMzUxNDEzN30._dVfVSGEYKKQc05jtbm-nhx0xY-bpwLf1pMSFDE0cTc; Path=/; HttpOnly"
+        }
+      },
+      "refreshToken": {
+        "name": "accessToken",
+        "in": "cookie",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "example": "refreshToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1dWlkIjoiYWQxNjY0MDgtZjU4My00ZWQzLWI2YWEtYTM3NDgxMDk3OTdiIiwicm9sZSI6IlVTRVIiLCJpYXQiOjE3MTM1MTIzMzcsImV4cCI6MTcxNjEwNDMzN30.4XVbi2ipfzMDpHYp5i_lDqCIrxu8J0kwtv9piAUSjV0; Path=/; HttpOnly"
+        }
+      }
+    },
+    "responses": {
+      "400": {
+        "description": "Bad Request",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "input is invalid"
+                }
+              }
+            }
+          }
+        }
+      },
+      "401": {
+        "description": "Unauthorized",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "access token is required"
+                }
+              }
+            }
+          }
+        }
+      },
+      "403": {
+        "description": "Forbiden",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "access denied"
+                }
+              }
+            }
+          }
+        }
+      },
+      "404": {
+        "description": "Not Found",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "user not found"
+                }
+              }
+            }
+          }
+        }
+      },
+      "409": {
+        "description": "Conflict",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "username already exist"
+                }
+              }
+            }
+          }
+        }
+      },
+      "500": {
+        "description": "Server Error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "sorry, an internal error occurred on the server. please try again later!"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,8 +1,17 @@
+import { ResponseError } from "../helpers/response-error.helper";
+
 const errorMiddleware = (err, req, res, next) => {
-  const errorStatus = err.status || 500;
-  const errorMessage = err.message || "sorry, internal server error";
+  let status = 500;
+  let message = "internal server error. please try again later";
 
-  console.log(`status: ${errorStatus}, message: ${errorMessage}`);
+  if (err instanceof ResponseError) {
+    status = err.status;
+    message = err.message;
+  }
 
-  res.status(errorStatus).message(errorMessage);
+  console.log(`status: ${status}, message: ${err.message} | this log error`); // menggunakan err.message supaya tahu pesan asli errornya
+
+  res.status(status).json({ error: message });
 };
+
+export default errorMiddleware;

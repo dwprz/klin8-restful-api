@@ -1,0 +1,815 @@
+{
+  "openapi": "3.0.2",
+  "info": {
+    "title": "Order API Spesification",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/api/orders": {
+      "post": {
+        "description": "* route for user and admin",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/refreshToken"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "customerName",
+                  "itemName",
+                  "serviceName",
+                  "quantity",
+                  "totalPrice",
+                  "status",
+                  "serviceMode",
+                  "paymentMethod",
+                  "address"
+                ],
+                "properties": {
+                  "userId": {
+                    "type": "number",
+                    "nullable": true,
+                    "example": null
+                  },
+                  "customerName": {
+                    "type": "string",
+                    "example": "John Doe"
+                  },
+                  "itemName": {
+                    "type": "string",
+                    "example": "Sepatu Bola warna Hitam"
+                  },
+                  "serviceName": {
+                    "type": "string",
+                    "enum": ["CLEAN", "REPAINT", "REPAIR"],
+                    "example": "CLEAN"
+                  },
+                  "quantity": {
+                    "type": "number",
+                    "example": 1
+                  },
+                  "totalPrice": {
+                    "type": "number",
+                    "example": 200000
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "PENDING_PICK_UP",
+                      "IN_PROGRESS",
+                      "BEING_DELIVERED",
+                      "READY_FOR_COLLECTION",
+                      "COMPLETED",
+                      "CANCELED"
+                    ],
+                    "example": "PENDING_PICK_UP"
+                  },
+                  "serviceMode": {
+                    "type": "string",
+                    "enum": [
+                      "REGULAR",
+                      "PICK_UP_ONLY",
+                      "DELIVERY_ONLY",
+                      "PICK_UP_AND_DELIVERY"
+                    ],
+                    "example": "PICK_UP_ONLY"
+                  },
+                  "paymentMethod": {
+                    "type": "string",
+                    "enum": ["CASH", "BANK_TRANSFER", "E_WALLET"],
+                    "example": "E_WALLET"
+                  },
+                  "whatsapp": {
+                    "type": "string",
+                    "maxLength": 20,
+                    "example": "08123456789"
+                  },
+                  "address": {
+                    "type": "string",
+                    "maxLength": 500,
+                    "example": "Goatan Street, Northen District, Pantura State"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/order-response"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400"
+          },
+          "401": {
+            "$ref": "#/components/responses/401"
+          },
+          "403": {
+            "$ref": "#/components/responses/403"
+          },
+          "404": {
+            "$ref": "#/components/responses/404"
+          },
+          "409": {
+            "$ref": "#/components/responses/409"
+          },
+          "500": {
+            "$ref": "#/components/responses/500"
+          }
+        }
+      },
+      "get": {
+        "description": "* route for admin",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/accessToken"
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "example": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/orders-response"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400"
+          },
+          "401": {
+            "$ref": "#/components/responses/401"
+          },
+          "403": {
+            "$ref": "#/components/responses/403"
+          },
+          "500": {
+            "$ref": "#/components/responses/500"
+          }
+        }
+      }
+    },
+    "/api/orders/customer/:customerName": {
+      "get": {
+        "description": "* route for admin",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/accessToken"
+          },
+          {
+            "name": "customerName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "john%20doe"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "example": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/orders-response"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400"
+          },
+          "401": {
+            "$ref": "#/components/responses/401"
+          },
+          "403": {
+            "$ref": "#/components/responses/403"
+          },
+          "500": {
+            "$ref": "#/components/responses/500"
+          }
+        }
+      }
+    },
+    "/api/orders/status/:orderStatus": {
+      "get": {
+        "description": "* route for admin",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/accessToken"
+          },
+          {
+            "name": "orderStatus",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "PENDING_PICK_UP",
+                "IN_PROGRESS",
+                "BEING_DELIVERED",
+                "READY_FOR_COLLECTION",
+                "COMPLETED",
+                "CANCELED"
+              ],
+              "example": "PENDING_PICK_UP"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "example": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/orders-response"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400"
+          },
+          "401": {
+            "$ref": "#/components/responses/401"
+          },
+          "403": {
+            "$ref": "#/components/responses/403"
+          },
+          "500": {
+            "$ref": "#/components/responses/500"
+          }
+        }
+      }
+    },
+    "/api/orders/current-user": {
+      "get": {
+        "description": "* route for user",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/accessToken"
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "example": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/orders-response"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400"
+          },
+          "401": {
+            "$ref": "#/components/responses/401"
+          },
+          "403": {
+            "$ref": "#/components/responses/403"
+          },
+          "500": {
+            "$ref": "#/components/responses/500"
+          }
+        }
+      }
+    },
+    "/api/orders/:orderId/status": {
+      "patch": {
+        "description": "* route for admin",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/accessToken"
+          },
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "example": 1
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["status"],
+                "properties": {
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "PENDING_PICK_UP",
+                      "IN_PROGRESS",
+                      "BEING_DELIVERED",
+                      "READY_FOR_COLLECTION",
+                      "COMPLETED",
+                      "CANCELED"
+                    ],
+                    "example": "BEING_DELIVERED"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/order-response"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400"
+          },
+          "401": {
+            "$ref": "#/components/responses/401"
+          },
+          "403": {
+            "$ref": "#/components/responses/403"
+          },
+          "404": {
+            "$ref": "#/components/responses/404"
+          },
+          "500": {
+            "$ref": "#/components/responses/500"
+          }
+        }
+      }
+    },
+    "/api/orders/:orderId": {
+      "delete": {
+        "description": "* route for user",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/accessToken"
+          },
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "example": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "deleted order successfully"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400"
+          },
+          "401": {
+            "$ref": "#/components/responses/401"
+          },
+          "403": {
+            "$ref": "#/components/responses/403"
+          },
+          "404": {
+            "$ref": "#/components/responses/404"
+          },
+          "500": {
+            "$ref": "#/components/responses/500"
+          }
+        }
+      }
+    },
+    "/api/orders/:orderId/permanent": {
+      "delete": {
+        "description": "* route for admin",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/accessToken"
+          },
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "example": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "deleted order permanently successfully"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400"
+          },
+          "401": {
+            "$ref": "#/components/responses/401"
+          },
+          "403": {
+            "$ref": "#/components/responses/403"
+          },
+          "404": {
+            "$ref": "#/components/responses/404"
+          },
+          "500": {
+            "$ref": "#/components/responses/500"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "orders-response": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "orderId": {
+                  "type": "number",
+                  "example": 1
+                },
+                "userId": {
+                  "type": "number",
+                  "nullable": true,
+                  "example": null
+                },
+                "customerName": {
+                  "type": "string",
+                  "example": "John Doe"
+                },
+                "itemName": {
+                  "type": "string",
+                  "example": "Sepatu Bola warna Hitam"
+                },
+                "serviceName": {
+                  "type": "string",
+                  "enum": ["CLEAN", "REPAINT", "REPAIR"],
+                  "example": "CLEAN"
+                },
+                "quantity": {
+                  "type": "number",
+                  "example": 1
+                },
+                "totalPrice": {
+                  "type": "number",
+                  "example": 200000
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "PENDING_PICK_UP",
+                    "IN_PROGRESS",
+                    "BEING_DELIVERED",
+                    "READY_FOR_COLLECTION",
+                    "COMPLETED",
+                    "CANCELED"
+                  ],
+                  "example": "IN_PROGRESS"
+                },
+                "serviceMode": {
+                  "type": "string",
+                  "enum": [
+                    "REGULAR",
+                    "PICK_UP_ONLY",
+                    "DELIVERY_ONLY",
+                    "PICK_UP_AND_DELIVERY"
+                  ],
+                  "example": "DELIVERY_ONLY"
+                },
+                "paymentMethod": {
+                  "type": "string",
+                  "enum": ["CASH", "BANK_TRANSFER", "E_WALLET"],
+                  "example": "E_WALLET"
+                },
+                "whatsapp": {
+                  "type": "string",
+                  "maxLength": 20,
+                  "example": "08123456789"
+                },
+                "address": {
+                  "type": "string",
+                  "maxLength": 500,
+                  "example": "Goatan Street, Northen District, Pantura State"
+                },
+                "isDeleted": {
+                  "type": "boolean",
+                  "default": false,
+                  "example": false
+                },
+                "createdAt": {
+                  "type": "string",
+                  "format": "date-time",
+                  "example": "2024-04-19T06:58:27.858Z"
+                },
+                "updatedAt": {
+                  "type": "string",
+                  "format": "date-time",
+                  "nullable": true,
+                  "example": "2024-04-19T06:58:27.858Z"
+                }
+              }
+            }
+          }
+        }
+      },
+      "order-response": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "object",
+            "properties": {
+              "orderId": {
+                "type": "number",
+                "example": 1
+              },
+              "userId": {
+                "type": "number",
+                "nullable": true,
+                "example": null
+              },
+              "customerName": {
+                "type": "string",
+                "example": "John Doe"
+              },
+              "itemName": {
+                "type": "string",
+                "example": "Sepatu Bola warna Hitam"
+              },
+              "serviceName": {
+                "type": "string",
+                "enum": ["CLEAN", "REPAINT", "REPAIR"],
+                "example": "CLEAN"
+              },
+              "quantity": {
+                "type": "number",
+                "example": 1
+              },
+              "totalPrice": {
+                "type": "number",
+                "example": 200000
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "PENDING_PICK_UP",
+                  "IN_PROGRESS",
+                  "BEING_DELIVERED",
+                  "READY_FOR_COLLECTION",
+                  "COMPLETED",
+                  "CANCELED"
+                ],
+                "example": "IN_PROGRESS"
+              },
+              "serviceMode": {
+                "type": "string",
+                "enum": [
+                  "REGULAR",
+                  "PICK_UP_ONLY",
+                  "DELIVERY_ONLY",
+                  "PICK_UP_AND_DELIVERY"
+                ],
+                "example": "DELIVERY_ONLY"
+              },
+              "paymentMethod": {
+                "type": "string",
+                "enum": ["CASH", "BANK_TRANSFER", "E_WALLET"],
+                "example": "E_WALLET"
+              },
+              "whatsapp": {
+                "type": "string",
+                "maxLength": 20,
+                "example": "08123456789"
+              },
+              "address": {
+                "type": "string",
+                "maxLength": 500,
+                "example": "Goatan Street, Northen District, Pantura State"
+              },
+              "isDeleted": {
+                "type": "boolean",
+                "default": false,
+                "example": false
+              },
+              "createdAt": {
+                "type": "string",
+                "format": "date-time",
+                "example": "2024-04-19T06:58:27.858Z"
+              },
+              "updatedAt": {
+                "type": "string",
+                "format": "date-time",
+                "nullable": true,
+                "example": "2024-04-19T06:58:27.858Z"
+              }
+            }
+          }
+        }
+      }
+    },
+    "parameters": {
+      "accessToken": {
+        "name": "accessToken",
+        "in": "cookie",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "example": "accessToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MjA2LCJ1c2VyTmFtZSI6IlVTRVJURVNUMTIzIiwicm9sZSI6IlVTRVIiLCJpYXQiOjE3MTM1MTIzMzcsImV4cCI6MTcxMzUxNDEzN30._dVfVSGEYKKQc05jtbm-nhx0xY-bpwLf1pMSFDE0cTc; Path=/; HttpOnly"
+        }
+      },
+      "refreshToken": {
+        "name": "accessToken",
+        "in": "cookie",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "example": "refreshToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1dWlkIjoiYWQxNjY0MDgtZjU4My00ZWQzLWI2YWEtYTM3NDgxMDk3OTdiIiwicm9sZSI6IlVTRVIiLCJpYXQiOjE3MTM1MTIzMzcsImV4cCI6MTcxNjEwNDMzN30.4XVbi2ipfzMDpHYp5i_lDqCIrxu8J0kwtv9piAUSjV0; Path=/; HttpOnly"
+        }
+      }
+    },
+    "responses": {
+      "400": {
+        "description": "Bad Request",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "input is invalid"
+                }
+              }
+            }
+          }
+        }
+      },
+      "401": {
+        "description": "Unauthorized",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "access token is required"
+                }
+              }
+            }
+          }
+        }
+      },
+      "403": {
+        "description": "Forbiden",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "access denied"
+                }
+              }
+            }
+          }
+        }
+      },
+      "404": {
+        "description": "Not Found",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "not found"
+                }
+              }
+            }
+          }
+        }
+      },
+      "409": {
+        "description": "Conflict",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "order already exist"
+                }
+              }
+            }
+          }
+        }
+      },
+      "500": {
+        "description": "Server Error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "sorry, an internal error occurred on the server. please try again later!"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
