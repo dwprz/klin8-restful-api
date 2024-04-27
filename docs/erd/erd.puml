@@ -1,0 +1,85 @@
+@startuml
+' hide the spot
+' hide circle
+
+' avoid problems with angled crows feet
+skinparam linetype ortho
+
+
+entity "User" as User {
+*userId : INTEGER <<generated>>
+--
+email :        varchar(100) <<unique>> <<not null>>
+fullName :     varchar(100) <<not null>>
+password :     varchar(100) <<nullable>>
+role :         UserRole default(USER)
+photoProfile : varchar(300) <<nullable>>
+whatsapp :     varchar(20) <<nullable>>
+address :      varchar(500) <<nullable>>
+refreshToken : varchar(1000) <<unique>> <<nullable>>
+createdAt :    timestamp default(current_timestamp)
+updatedAt :    timestamp <<nullable>>
+}
+
+entity "orders" as Order{
+*orderId : integer <<generated>>
+--
+userId : integer <<nullable>> <<FK>>
+customerName : varchar(100) <<not null>>
+itemName : varchar(100) <<not null>>
+serviceName : ServiceName
+quantity : integer <<not null>>
+totalPrice : integer <<not null>>
+status : Status
+serviceMode : ServiceMode
+paymentMethod : PaymentMethod
+whatsapp : varchar(20) <<nullable>>
+address : varchar(500) <<not null>>
+isDeleted : boolean default(false)
+createdAt : timestamp default(current_timestamp)
+deletedAt : timestamp default(current_timestamp)
+}
+
+enum UserRole{
+User
+Admin
+}
+
+entity "otp" as otp{
+*email : varchar(100) <<unique>> <<not null>>
+--
+otp : integer <<not null>>
+}
+
+enum ServiceName {
+CLEAN
+REPAINT
+REPAIR
+}
+
+enum Status{
+PENDING_PICK_UP
+IN_PROGRESS
+BEING_DELIVERED
+READY_FOR_COLLECTION
+COMPLETED
+CANCELED
+}
+
+enum ServiceMode{
+REGULAR
+PICK_UP_ONLY
+DELIVERY_ONLY
+PICK_UP_AND_DELIVERY
+}
+
+enum PaymentMethod{
+CASH
+BANK
+E_WALLET
+}
+
+User ||--o{ Order
+
+
+@enduml
