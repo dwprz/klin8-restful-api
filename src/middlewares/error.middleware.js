@@ -1,4 +1,4 @@
-import { ResponseError } from "../helpers/response-error.helper";
+import { ResponseError } from "../helpers/response-error.helper.js";
 
 const errorMiddleware = (err, req, res, next) => {
   let status = 500;
