@@ -15,7 +15,7 @@ orderRouter.get("/api/orders/status/:orderStatus", verifyTokenMiddleware, verify
 orderRouter.patch("/api/orders/:orderId/status", verifyTokenMiddleware, verifyAdminMiddleware, orderController.updateStatus);
 orderRouter.delete("/api/orders/:orderId/permanent", verifyTokenMiddleware, verifyAdminMiddleware, orderController.deleteOrderPermanently);
 
-// user
+// users
 orderRouter.get("/api/orders/current-user", verifyTokenMiddleware, orderController.getOrdersByCurrentUser);
 orderRouter.delete("/api/orders/:orderId", verifyTokenMiddleware, orderController.deleteOrder);
 
