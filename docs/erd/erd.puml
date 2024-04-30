@@ -75,6 +75,6 @@ enum PaymentMethod {
 }
 
 
-User ||--o{ Order
+User |o--o{ Order
 
 @enduml
