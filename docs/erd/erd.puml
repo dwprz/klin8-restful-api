@@ -23,7 +23,7 @@ enum UserRole {
 entity "otp" as Otp {
     *email: VARCHAR(100) <<unique>> <<not null>>
     --
-    otp: INTEGER <<not null>>
+    otp: VARCHAR(6) <<not null>>
 }
 
 

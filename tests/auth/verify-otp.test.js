@@ -4,7 +4,7 @@ import { authTestUtil } from "./auth-test.util.js";
 
 // npx jest tests/auth/verify-otp.test.js
 
-describe("POST /api/users/verify-otp", () => {
+describe("POST /api/users/otp/verify", () => {
   let otp;
 
   beforeAll(async () => {
@@ -16,7 +16,7 @@ describe("POST /api/users/verify-otp", () => {
   });
 
   it("verify otp should be successful", async () => {
-    const result = await supertest(app).post("/api/users/verify-otp").send({
+    const result = await supertest(app).post("/api/users/otp/verify").send({
       email: "klin8shoes@gmail.com",
       otp: otp,
     });
@@ -28,7 +28,7 @@ describe("POST /api/users/verify-otp", () => {
   });
 
   it("verify otp should fail if otp is incorrect", async () => {
-    const result = await supertest(app).post("/api/users/verify-otp").send({
+    const result = await supertest(app).post("/api/users/otp/verify").send({
       email: "klin8shoes@gmail.com",
       otp: "inccorect otp",
     });

@@ -33,7 +33,7 @@ CREATE TABLE "users" (
 -- CreateTable
 CREATE TABLE "otp" (
     "email" VARCHAR(100) NOT NULL,
-    "otp" INTEGER NOT NULL,
+    "otp" VARCHAR(6) NOT NULL,
 
     CONSTRAINT "otp_pkey" PRIMARY KEY ("email")
 );

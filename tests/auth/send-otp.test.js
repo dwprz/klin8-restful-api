@@ -4,13 +4,13 @@ import { authTestUtil } from "./auth-test.util.js";
 
 // npx jest tests/auth/send-otp.test.js
 
-describe("POST /api/users/send-otp", () => {
+describe("POST /api/users/otp", () => {
   afterEach(async () => {
     await authTestUtil.removeOtp();
   });
 
   it("send otp should be successful", async () => {
-    const result = await supertest(app).post("/api/users/send-otp").send({
+    const result = await supertest(app).post("/api/users/otp").send({
       email: "klin8shoes@gmail.com",
     });
 
@@ -19,7 +19,7 @@ describe("POST /api/users/send-otp", () => {
   }, 15000 /* 15 detik */);
 
   it("send otp should fail if email is incorrect", async () => {
-    const result = await supertest(app).post("/api/users/send-otp").send({
+    const result = await supertest(app).post("/api/users/otp").send({
       email: "incorrectEmail",
     });
 

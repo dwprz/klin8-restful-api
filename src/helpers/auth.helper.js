@@ -6,11 +6,9 @@ import "dotenv/config";
 
 const generateOtp = () => {
   // membuat otp 6 digit
-  const otp = parseInt(
-    Math.round(Math.random() * 1000000)
-      .toString()
-      .padStart(6, "0")
-  );
+  const otp = Math.round(Math.random() * 1000000)
+    .toString()
+    .padStart(6, "0");
 
   return otp;
 };

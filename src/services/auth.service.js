@@ -38,8 +38,22 @@ const sendOtp = async (email) => {
       html: renderTemplate,
     })
     .then(async () => {
-      await prismaService.otp.create({
-        data: {
+      await prismaService.$queryRaw`
+      INSERT INTO 
+          otp (email, otp) VALUES (${email}, ${otp})
+      ON CONFLICT 
+          (email)
+      DO UPDATE SET 
+          otp = ${otp};
+      `;
+      await prismaService.otp.upsert({
+        where: {
+          email: email,
+        },
+        update: {
+          otp: otp,
+        },
+        create: {
           email: email,
           otp: otp,
         },

@@ -5,7 +5,7 @@ const createOtp = async () => {
     const { otp } = await prismaService.otp.create({
       data: {
         email: "klin8shoes@gmail.com",
-        otp: 123456,
+        otp: "123456",
       },
     });
 

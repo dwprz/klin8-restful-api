@@ -4,7 +4,7 @@ const email = z.string().min(5).max(100);
 
 const verifyOtpRequest = z.object({
   email: z.string().min(5).max(100),
-  otp: z.number().int(),
+  otp: z.string().max(6),
 });
 
 const registerRequest = z
