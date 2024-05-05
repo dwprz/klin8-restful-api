@@ -46,18 +46,6 @@ const sendOtp = async (email) => {
       DO UPDATE SET 
           otp = ${otp};
       `;
-      await prismaService.otp.upsert({
-        where: {
-          email: email,
-        },
-        update: {
-          otp: otp,
-        },
-        create: {
-          email: email,
-          otp: otp,
-        },
-      });
     })
     .catch((error) => {
       throw new ResponseError(500, error.message);
