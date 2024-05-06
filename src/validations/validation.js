@@ -6,7 +6,8 @@ const validation = (data, schema) => {
   if (res.success) {
     return res.data;
   } else {
-    throw new ResponseError(400, res.error.message || "bad request");
+    console.log(res.error.message);
+    throw new ResponseError(400, "bad request");
   }
 };
 

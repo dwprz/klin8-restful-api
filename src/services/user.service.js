@@ -6,6 +6,21 @@ import { userValidation } from "../validations/user.validation.js";
 import validation from "../validations/validation.js";
 import bcrypt from "bcrypt";
 
+const getUserByEmail = async (email) => {
+  const findUser = await prismaService.user.findUnique({
+    where: {
+      email: email,
+    },
+  });
+
+  if (!findUser) {
+    throw new ResponseError(404, "user not found");
+  }
+
+  const { password, refreshToken, ...user } = findUser;
+  return user;
+};
+
 const getUsersByRole = async (getAllByRoleRequest) => {
   const { page, role } = validation(
     getAllByRoleRequest,
@@ -171,6 +186,7 @@ const updatePhotoProfile = async (updatePhotoProfileRequest) => {
 };
 
 export const userService = {
+  getUserByEmail,
   getUsersByRole,
   updateUser,
   updateEmail,

@@ -7,7 +7,12 @@ import orderRouter from "../../routes/order.router.js";
 import errorMiddleware from "../../middlewares/error.middleware.js";
 
 const app = express();
-app.use(cors());
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    credentials: true,
+  })
+);
 app.use(express.static(process.cwd() + "/public"));
 app.use(cookieParser());
 app.use(json());

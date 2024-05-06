@@ -48,7 +48,7 @@ const sendOtp = async (email) => {
       `;
     })
     .catch((error) => {
-      throw new ResponseError(500, error.message);
+      throw new ResponseError(500, "failed to send otp");
     });
 };
 

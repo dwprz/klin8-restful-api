@@ -11,6 +11,7 @@ const userRouter = express.Router();
 userRouter.get("/api/users", verifyTokenMiddleware, verifyAdminMiddleware, userController.getUsersByRole);
 
 // user & admin
+userRouter.get("/api/users/current", verifyTokenMiddleware, userController.getCurrentUser);
 userRouter.patch("/api/users/current", verifyTokenMiddleware, userController.updateUser);
 userRouter.patch("/api/users/current/password", verifyTokenMiddleware, userController.updatePassword);
 userRouter.patch("/api/users/current/email", verifyTokenMiddleware, userController.updateEmail);

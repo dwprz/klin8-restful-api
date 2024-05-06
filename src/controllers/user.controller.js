@@ -1,6 +1,16 @@
 import { userService } from "../services/user.service.js";
 import fs from "fs";
 
+const getCurrentUser = async (req, res, next) => {
+  try {
+    const { email } = req.userData;
+    const result = await userService.getUserByEmail(email);
+    res.status(200).json({ data: result });
+  } catch (error) {
+    next(error);
+  }
+};
+
 const getUsersByRole = async (req, res, next) => {
   try {
     const page = Number(req.query["page"]);
@@ -67,6 +77,7 @@ const updatePhotoProfile = async (req, res, next) => {
 };
 
 export const userController = {
+  getCurrentUser,
   getUsersByRole,
   updateUser,
   updateEmail,
