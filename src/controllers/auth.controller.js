@@ -63,11 +63,13 @@ const refreshToken = async (req, res, next) => {
         .json({ error: "refreshToken cookie is required " });
     }
 
-    const accessToken = await authService.generateNewAccessToken(refreshToken);
+    const { accessToken, user } = await authService.generateNewAccessToken(
+      refreshToken
+    );
 
     res.cookie("accessToken", accessToken, { httpOnly: true });
 
-    res.status(201).json({ message: "created new access token successfully" });
+    res.status(201).json({ data: user });
   } catch (error) {
     next(error);
   }

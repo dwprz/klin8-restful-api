@@ -184,8 +184,9 @@ const generateNewAccessToken = async (refreshToken) => {
   }
 
   const accessToken = authHelper.createAccessToken(findUser);
+  const { password, refreshToken:rt, ...user } = findUser;
 
-  return accessToken;
+  return { accessToken, user };
 };
 
 const setNullRefreshToken = async (userId) => {
