@@ -1,4 +1,5 @@
 import prismaService from "../apps/database/db.js";
+import { orderHelper } from "../helpers/order.helper.js";
 import { orderValidation } from "../validations/order.validation.js";
 import validation from "../validations/validation.js";
 
@@ -12,7 +13,9 @@ const createOrder = async (createOrderRequest) => {
     data: createOrderRequest,
   });
 
-  return order;
+  const statuses = await orderHelper.createStatuses(order);
+
+  return { ...order, statuses };
 };
 
 const getAllOrders = async (page) => {
@@ -21,14 +24,19 @@ const getAllOrders = async (page) => {
   const take = 20;
   const skip = (page - 1) * take;
 
-  const orders = await prismaService.order.findMany({
-    orderBy: {
-      createdAt: "desc",
-    },
-    take: take,
-    skip: skip,
-  });
+  let orders = await prismaService.$queryRaw`
+  SELECT 
+    * 
+  FROM 
+      orders as o 
+  INNER JOIN 
+      statuses as s ON s."orderId" = o."orderId"
+  ORDER BY
+      o."createdAt" DESC 
+  LIMIT ${take} OFFSET ${skip};
+  `;
 
+  orders = orderHelper.transformOrders(orders);
   return orders;
 };
 
@@ -43,12 +51,21 @@ const getOrdersByCustomer = async (getOrdersByCustomerRequest) => {
 
   customerName = customerName.split(" ").join(" & ");
 
-  const orders = await prismaService.$queryRaw`
-  SELECT * FROM orders
-  WHERE to_tsvector("customerName") @@ to_tsquery(${customerName})
+  let orders = await prismaService.$queryRaw`
+  SELECT 
+      o.*, s.*
+  FROM 
+      orders as o
+  INNER JOIN
+      statuses as s ON s."orderId" = o."orderId"
+  WHERE 
+      to_tsvector("customerName") @@ to_tsquery(${customerName})
+  ORDER BY
+      o."createdAt" DESC
   LIMIT ${take} OFFSET ${skip};
   `;
 
+  orders = orderHelper.transformOrders(orders);
   return orders;
 };
 
@@ -61,17 +78,21 @@ const getOrdersByStatus = async (getOrdersByStatusRequest) => {
   const take = 20;
   const skip = (page - 1) * take;
 
-  const orders = await prismaService.order.findMany({
-    where: {
-      status: status,
-    },
-    take: take,
-    skip: skip,
-    orderBy: {
-      createdAt: "desc",
-    },
-  });
+  let orders = await prismaService.$queryRaw`
+  SELECT 
+      o.*, s.*
+  FROM 
+      orders as o
+  INNER JOIN
+      statuses as s ON s."orderId" = o."orderId"
+  WHERE 
+      s."statusName"::text = ${status}
+  ORDER BY
+      o."createdAt" DESC
+  LIMIT ${take} OFFSET ${skip};
+  `;
 
+  orders = orderHelper.transformOrders(orders);
   return orders;
 };
 
@@ -84,18 +105,21 @@ const getOrdersByCurrentUser = async (getOrdersByCurrentUserRequest) => {
   const take = 20;
   const skip = (page - 1) * take;
 
-  const orders = await prismaService.order.findMany({
-    where: {
-      userId: userId,
-      isDeleted: false,
-    },
-    take: take,
-    skip: skip,
-    orderBy: {
-      createdAt: "desc",
-    },
-  });
+  let orders = await prismaService.$queryRaw`
+  SELECT 
+    o.*, s.*
+  FROM 
+      orders as o
+  INNER JOIN
+      statuses as s ON s."orderId" = o."orderId"
+  WHERE 
+      o."userId" = ${userId} AND o."isDeleted" = FALSE
+  ORDER BY
+      o."createdAt" DESC
+  LIMIT ${take} OFFSET ${skip};
+  `;
 
+  orders = orderHelper.transformOrders(orders);
   return orders;
 };
 
@@ -105,16 +129,32 @@ const updateStatus = async (updateStatusRequest) => {
     orderValidation.updateStatusRequest
   );
 
-  const order = await prismaService.order.update({
-    where: {
-      orderId: orderId,
-    },
-    data: {
-      status: status,
-    },
-  });
+  await prismaService.$queryRaw`
+  UPDATE statuses
+  SET
+      "isCurrentStatus" = CASE
+          WHEN "statusName"::text = ${status} THEN TRUE
+          ELSE FALSE
+      END,
+      "date" = CASE
+          WHEN "statusName"::text = ${status} THEN now()
+          ELSE "date"
+      END
+  WHERE
+      "orderId" = ${orderId};
+  `;
 
-  return order;
+  const order = await prismaService.$queryRaw`
+  SELECT * FROM orders
+  WHERE "orderId" = ${orderId};
+  `;
+
+  const statuses = await prismaService.$queryRaw`
+  SELECT * FROM statuses
+  WHERE "orderId" = ${orderId};
+  `;
+
+  return { ...order[0], statuses };
 };
 
 const deleteOrder = async (orderId) => {
@@ -132,6 +172,12 @@ const deleteOrder = async (orderId) => {
 
 const deleteOrderPermanently = async (orderId) => {
   orderId = validation(orderId, orderValidation.orderId);
+
+  await prismaService.status.deleteMany({
+    where: {
+      orderId: orderId,
+    },
+  });
 
   await prismaService.order.delete({
     where: {

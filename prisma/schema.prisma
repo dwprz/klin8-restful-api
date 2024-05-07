@@ -51,7 +51,7 @@ model Order {
   serviceName   ServiceName
   quantity      Int           @db.Integer
   totalPrice    Int           @db.Integer
-  status        Status
+  statuses      Status[]
   serviceMode   ServiceMode
   paymentMethod PaymentMethod
   whatsapp      String?       @db.VarChar(20)
@@ -65,13 +65,27 @@ model Order {
   @@map("orders")
 }
 
+model Status {
+  statusId        Int       @id @default(autoincrement())
+  statusName      Statuses
+  description     String    @db.VarChar(100)
+  icon            String    @db.VarChar(100)
+  isCurrentStatus Boolean   @default(false) @db.Boolean
+  date            DateTime?
+  orderId         Int
+
+  order Order @relation(fields: [orderId], references: [orderId])
+
+  @@map("statuses")
+}
+
 enum ServiceName {
   CLEAN
   REPAINT
   REPAIR
 }
 
-enum Status {
+enum Statuses {
   PENDING_PICK_UP
   IN_PROGRESS
   BEING_DELIVERED

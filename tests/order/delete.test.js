@@ -21,7 +21,7 @@ describe("DELETE /api/orders/:orderId", () => {
   });
 
   afterAll(async () => {
-    await orderTestUtil.removeOrder();
+    await orderTestUtil.removeOrder(orderId);
     await userTestUtil.removeUser();
   });
 

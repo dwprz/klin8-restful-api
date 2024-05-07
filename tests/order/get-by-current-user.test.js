@@ -9,16 +9,19 @@ describe("GET /api/orders/current-user", () => {
   let userEmail;
   let userPassword;
 
+  let orderId;
+
   beforeAll(async () => {
     const user = await userTestUtil.createUser();
     userEmail = user.email;
     userPassword = user.password;
 
-    await orderTestUtil.createOrder(user);
+    const order = await orderTestUtil.createOrder(user);
+    orderId = order.orderId;
   });
 
   afterAll(async () => {
-    await orderTestUtil.removeOrder();
+    await orderTestUtil.removeOrder(orderId);
     await userTestUtil.removeUser();
   });
 

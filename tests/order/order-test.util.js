@@ -1,4 +1,5 @@
 import prismaService from "../../src/apps/database/db";
+import { orderHelper } from "../../src/helpers/order.helper";
 
 const createOrder = async (user) => {
   try {
@@ -10,7 +11,6 @@ const createOrder = async (user) => {
         serviceName: "CLEAN",
         quantity: 1,
         totalPrice: 15000,
-        status: "PENDING_PICK_UP",
         serviceMode: "PICK_UP_ONLY",
         paymentMethod: "E_WALLET",
         whatsapp: user.whatsapp,
@@ -18,14 +18,22 @@ const createOrder = async (user) => {
       },
     });
 
-    return order;
+    const statuses = await orderHelper.createStatuses(order);
+
+    return { ...order, statuses };
   } catch (error) {
     console.log(error.message);
   }
 };
 
-const removeOrder = async () => {
+const removeOrder = async (orderId) => {
   try {
+    await prismaService.status.deleteMany({
+      where: {
+        orderId: orderId,
+      },
+    });
+
     await prismaService.order.deleteMany({
       where: {
         customerName: "User Test123",

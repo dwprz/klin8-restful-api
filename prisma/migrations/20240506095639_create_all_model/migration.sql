@@ -5,7 +5,7 @@ CREATE TYPE "UserRole" AS ENUM ('USER', 'ADMIN');
 CREATE TYPE "ServiceName" AS ENUM ('CLEAN', 'REPAINT', 'REPAIR');
 
 -- CreateEnum
-CREATE TYPE "Status" AS ENUM ('PENDING_PICK_UP', 'IN_PROGRESS', 'BEING_DELIVERED', 'READY_FOR_COLLECTION', 'COMPLETED', 'CANCELED');
+CREATE TYPE "Statuses" AS ENUM ('PENDING_PICK_UP', 'IN_PROGRESS', 'BEING_DELIVERED', 'READY_FOR_COLLECTION', 'COMPLETED', 'CANCELED');
 
 -- CreateEnum
 CREATE TYPE "ServiceMode" AS ENUM ('REGULAR', 'PICK_UP_ONLY', 'DELIVERY_ONLY', 'PICK_UP_AND_DELIVERY');
@@ -47,7 +47,6 @@ CREATE TABLE "orders" (
     "serviceName" "ServiceName" NOT NULL,
     "quantity" INTEGER NOT NULL,
     "totalPrice" INTEGER NOT NULL,
-    "status" "Status" NOT NULL,
     "serviceMode" "ServiceMode" NOT NULL,
     "paymentMethod" "PaymentMethod" NOT NULL,
     "whatsapp" VARCHAR(20),
@@ -57,6 +56,19 @@ CREATE TABLE "orders" (
     "updatedAt" TIMESTAMP(3),
 
     CONSTRAINT "orders_pkey" PRIMARY KEY ("orderId")
+);
+
+-- CreateTable
+CREATE TABLE "statuses" (
+    "statusId" SERIAL NOT NULL,
+    "statusName" "Statuses" NOT NULL,
+    "description" VARCHAR(100) NOT NULL,
+    "icon" VARCHAR(100) NOT NULL,
+    "isCurrentStatus" BOOLEAN NOT NULL DEFAULT false,
+    "date" TIMESTAMP(3),
+    "orderId" INTEGER NOT NULL,
+
+    CONSTRAINT "statuses_pkey" PRIMARY KEY ("statusId")
 );
 
 -- CreateIndex
@@ -70,3 +82,6 @@ CREATE UNIQUE INDEX "otp_email_key" ON "otp"("email");
 
 -- AddForeignKey
 ALTER TABLE "orders" ADD CONSTRAINT "orders_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("userId") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "statuses" ADD CONSTRAINT "statuses_orderId_fkey" FOREIGN KEY ("orderId") REFERENCES "orders"("orderId") ON DELETE RESTRICT ON UPDATE CASCADE;

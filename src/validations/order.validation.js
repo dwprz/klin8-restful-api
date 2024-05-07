@@ -8,14 +8,6 @@ const createOrderRequest = z
     serviceName: z.enum(["CLEAN", "REPAINT", "REPAIR"]),
     quantity: z.number().min(1).max(100),
     totalPrice: z.number(),
-    status: z.enum([
-      "PENDING_PICK_UP",
-      "IN_PROGRESS",
-      "BEING_DELIVERED",
-      "READY_FOR_COLLECTION",
-      "COMPLETED",
-      "CANCELED",
-    ]),
     serviceMode: z.enum([
       "REGULAR",
       "PICK_UP_ONLY",
@@ -36,7 +28,14 @@ const getOrdersByCustomerRequest = z.object({
 });
 
 const getOrdersByStatusRequest = z.object({
-  status: z.string().max(25),
+  status: z.enum([
+    "PENDING_PICK_UP",
+    "IN_PROGRESS",
+    "BEING_DELIVERED",
+    "READY_FOR_COLLECTION",
+    "COMPLETED",
+    "CANCELED",
+  ]),
   page: z.number().min(1).int(),
 });
 

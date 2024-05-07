@@ -12,6 +12,8 @@ describe("GET /api/orders/status/:orderStatus", () => {
   let userEmail;
   let userPassword;
 
+  let orderId;
+
   beforeAll(async () => {
     const admin = await userTestUtil.createAdmin();
     adminEmail = admin.email;
@@ -21,11 +23,12 @@ describe("GET /api/orders/status/:orderStatus", () => {
     userEmail = user.email;
     userPassword = user.password;
 
-    await orderTestUtil.createOrder(user);
+    const order = await orderTestUtil.createOrder(user);
+    orderId = order.orderId;
   });
 
   afterAll(async () => {
-    await orderTestUtil.removeOrder();
+    await orderTestUtil.removeOrder(orderId);
     await userTestUtil.removeAdmin();
     await userTestUtil.removeUser();
   });

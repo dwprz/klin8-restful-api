@@ -28,7 +28,7 @@ describe("PATCH /api/orders/:orderId/status", () => {
   });
 
   afterAll(async () => {
-    await orderTestUtil.removeOrder();
+    await orderTestUtil.removeOrder(orderId);
     await userTestUtil.removeAdmin();
     await userTestUtil.removeUser();
   });

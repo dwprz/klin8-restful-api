@@ -28,7 +28,7 @@ describe("DELETE /api/orders/:orderId/permanent", () => {
   });
 
   afterAll(async () => {
-    await orderTestUtil.removeOrder();
+    await orderTestUtil.removeOrder(orderId);
     await userTestUtil.removeAdmin();
     await userTestUtil.removeUser();
   });

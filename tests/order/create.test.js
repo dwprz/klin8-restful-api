@@ -13,6 +13,8 @@ describe("POST /api/orders", () => {
   let userWhatsapp;
   let userAddress;
 
+  let orderId;
+
   beforeAll(async () => {
     const user = await userTestUtil.createUser();
     userId = user.userId;
@@ -24,7 +26,7 @@ describe("POST /api/orders", () => {
   });
 
   afterAll(async () => {
-    await orderTestUtil.removeOrder();
+    await orderTestUtil.removeOrder(orderId);
     await userTestUtil.removeUser();
   });
 
@@ -45,13 +47,14 @@ describe("POST /api/orders", () => {
         serviceName: "CLEAN",
         quantity: 1,
         totalPrice: 15000,
-        status: "PENDING_PICK_UP",
         serviceMode: "PICK_UP_ONLY",
         paymentMethod: "E_WALLET",
         whatsapp: userWhatsapp,
         address: userAddress,
       })
       .set("Cookie", cookies);
+
+    orderId = result.body.data.orderId;
 
     expect(result.status).toBe(201);
     expect(result.body.data).toBeDefined();
@@ -65,7 +68,6 @@ describe("POST /api/orders", () => {
       serviceName: "CLEAN",
       quantity: 1,
       totalPrice: 15000,
-      status: "PENDING_PICK_UP",
       serviceMode: "PICK_UP_ONLY",
       paymentMethod: "E_WALLET",
       whatsapp: userWhatsapp,
