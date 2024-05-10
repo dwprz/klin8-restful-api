@@ -19,7 +19,9 @@ const sendOtp = async (email) => {
     throw new ResponseError(422, "gmail user is not provided");
   }
 
-  const template = templateHelper.renderTemplate("/src/template/otp.html", otp);
+  const template = templateHelper.renderTemplate("/src/template/otp.html", {
+    otp,
+  });
 
   await transporterHelper.sendMail(gmailMaster, email, template);
 
