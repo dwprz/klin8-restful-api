@@ -1,5 +1,5 @@
 import supertest from "supertest";
-import app from "../../src/apps/app/app.js";
+import app from "../../src/apps/app.js";
 import { userTestUtil } from "../user/user-test.util.js";
 import { orderTestUtil } from "./order-test.util.js";
 
@@ -58,6 +58,7 @@ describe("POST /api/orders", () => {
 
     expect(result.status).toBe(201);
     expect(result.body.data).toBeDefined();
+    expect(result.body.qrcodeToken).toBeDefined();
   });
 
   it("create order should fail without accessToken cookie", async () => {

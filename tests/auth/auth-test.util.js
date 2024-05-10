@@ -1,4 +1,4 @@
-import prismaService from "../../src/apps/database/db.js";
+import prismaService from "../../src/apps/database.js";
 
 const createOtp = async () => {
   try {

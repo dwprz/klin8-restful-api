@@ -1,7 +1,4 @@
-import prismaService from "../apps/database/db.js";
-
-const createStatuses = async (order) => {
-  const { orderId, serviceMode } = order;
+const createStatuses = ({ orderId, serviceMode }) => {
   let statuses;
 
   const pendingPickUp = {
@@ -27,7 +24,7 @@ const createStatuses = async (order) => {
     statusName: "BEING_DELIVERED",
     description: "Sedang dikirim",
     icon: "fa-solid fa-truck",
-    isCurrentStatus: true,
+    isCurrentStatus: false,
     date: null,
   };
 
@@ -55,6 +52,7 @@ const createStatuses = async (order) => {
     case "REGULAR":
       statuses = [
         { ...inProgress, isCurrentStatus: true, date: currentDate },
+        readyForCollection,
         completed,
       ];
       break;
@@ -85,64 +83,9 @@ const createStatuses = async (order) => {
       break;
   }
 
-  await prismaService.status.createMany({
-    data: statuses,
-  });
-
-  const result = await prismaService.status.findMany({
-    where: {
-      orderId: orderId,
-    },
-  });
-
-  return result;
-};
-
-const transformOrders = (orders) => {
-  if (!orders.length) {
-    return [];
-  }
-
-  let processedOrders = {};
-
-  orders.forEach((order) => {
-    if (!processedOrders[order.orderId]) {
-      processedOrders[order.orderId] = {
-        orderId: order.orderId,
-        customerName: order.customerName,
-        userId: order.userId,
-        itemName: order.itemName,
-        serviceName: order.serviceName,
-        quantity: order.quantity,
-        totalPrice: order.totalPrice,
-        serviceMode: order.serviceMode,
-        paymentMethod: order.paymentMethod,
-        whatsapp: order.whatsapp,
-        address: order.address,
-        isDeleted: order.isDeleted,
-        createdAt: order.createdAt,
-        updatedAt: order.updatedAt,
-        statuses: [],
-      };
-    }
-
-    const status = {
-      statusId: order.statusId,
-      statusName: order.statusName,
-      description: order.description,
-      icon: order.icon,
-      isCurrentStatus: order.isCurrentStatus,
-      date: order.date,
-    };
-
-    processedOrders[order.orderId].statuses.push(status);
-  });
-
-  const result = Object.values(processedOrders);
-  return result;
+  return statuses;
 };
 
 export const orderHelper = {
   createStatuses,
-  transformOrders,
 };

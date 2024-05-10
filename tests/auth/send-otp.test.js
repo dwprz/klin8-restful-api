@@ -1,5 +1,5 @@
 import supertest from "supertest";
-import app from "../../src/apps/app/app.js";
+import app from "../../src/apps/app.js";
 import { authTestUtil } from "./auth-test.util.js";
 
 // npx jest tests/auth/send-otp.test.js

@@ -1,5 +1,5 @@
-import prismaService from "../../src/apps/database/db";
-import { orderHelper } from "../../src/helpers/order.helper";
+import prismaService from "../../src/apps/database";
+import { orderUtil } from "../../src/utils/order.util";
 
 const createOrder = async (user) => {
   try {
@@ -18,7 +18,7 @@ const createOrder = async (user) => {
       },
     });
 
-    const statuses = await orderHelper.createStatuses(order);
+    const statuses = await orderUtil.createStatusesOrders(order);
 
     return { ...order, statuses };
   } catch (error) {

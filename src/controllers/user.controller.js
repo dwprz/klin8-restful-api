@@ -14,10 +14,28 @@ const getCurrentUser = async (req, res, next) => {
 const getUsersByRole = async (req, res, next) => {
   try {
     const page = Number(req.query["page"]);
-    const role = req.query.role.toUpperCase();
+    const role = req.query["role"].toUpperCase();
 
-    const result = await userService.getUsersByRole({ page, role });
-    res.status(200).json({ data: result });
+    const { data, paging } = await userService.getUsersByRole({ page, role });
+    res.status(200).json({ data, paging });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const getUsersByFullName = async (req, res, next) => {
+  try {
+    const fullName = req.params["fullName"];
+    const role = req.query["role"];
+    const page = Number(req.query["page"]);
+
+    const { data, paging } = await userService.getUsersByFullName({
+      fullName,
+      role,
+      page,
+    });
+
+    res.status(200).json({ data, paging });
   } catch (error) {
     next(error);
   }
@@ -79,6 +97,7 @@ const updatePhotoProfile = async (req, res, next) => {
 export const userController = {
   getCurrentUser,
   getUsersByRole,
+  getUsersByFullName,
   updateUser,
   updateEmail,
   updatePassword,

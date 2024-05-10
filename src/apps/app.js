@@ -1,10 +1,10 @@
 import express, { json } from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
-import authRouter from "../../routes/auth.router.js";
-import userRouter from "../../routes/user.router.js";
-import orderRouter from "../../routes/order.router.js";
-import errorMiddleware from "../../middlewares/error.middleware.js";
+import authRouter from "../routes/auth.router.js";
+import userRouter from "../routes/user.router.js";
+import orderRouter from "../routes/order.router.js";
+import errorMiddleware from "../middlewares/error.middleware.js";
 
 const app = express();
 app.use(

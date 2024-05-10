@@ -1,4 +1,4 @@
-import prismaService from "../../src/apps/database/db";
+import prismaService from "../../src/apps/database";
 import bcrypt from "bcrypt";
 
 // user
@@ -15,23 +15,18 @@ const adminPassword = "Password Test";
 
 const createUser = async () => {
   try {
-    const { userId } = await prismaService.user.create({
+    const user = await prismaService.user.create({
       data: {
         email: userEmail,
         fullName: userFullName,
         role: "USER",
         password: await bcrypt.hash(userPassword, 10),
+        whatsapp: userWhatsapp,
+        address: userAddress,
       },
     });
 
-    return {
-      userId: userId,
-      email: userEmail,
-      fullName: userFullName,
-      password: userPassword,
-      whatsapp: userWhatsapp,
-      address: userAddress,
-    };
+    return { ...user, password: userPassword };
   } catch (error) {
     console.log(error.message);
   }
@@ -58,7 +53,7 @@ const removeUser = async () => {
 
 const createAdmin = async () => {
   try {
-    await prismaService.user.create({
+    const admin = await prismaService.user.create({
       data: {
         email: adminEmail,
         fullName: adminFullName,
@@ -67,10 +62,7 @@ const createAdmin = async () => {
       },
     });
 
-    return {
-      email: adminEmail,
-      password: adminPassword,
-    };
+    return { ...admin, password: adminPassword };
   } catch (error) {
     console.log(error.message);
   }

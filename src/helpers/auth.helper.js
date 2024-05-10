@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
 import { v4 as uuidV4 } from "uuid";
-import { ResponseError } from "./response-error.helper.js";
+import { ResponseError } from "./error.helper.js";
 import bcrypt from "bcrypt";
 import "dotenv/config";
 
@@ -14,9 +14,9 @@ const generateOtp = () => {
 };
 
 const createAccessToken = (user) => {
-  const jwtAccessTokenSecretKey = process.env.JWT_ACCESS_TOKEN_SECRET_KEY;
+  const secretKey = process.env.JWT_ACCESS_TOKEN_SECRET_KEY;
 
-  if (!jwtAccessTokenSecretKey) {
+  if (!secretKey) {
     throw new ResponseError(
       422,
       "jwt secret key for access token is not provided"
@@ -29,7 +29,7 @@ const createAccessToken = (user) => {
       email: user.email,
       role: user.role,
     },
-    jwtAccessTokenSecretKey,
+    secretKey,
     { expiresIn: "30m" }
   );
 
@@ -37,9 +37,9 @@ const createAccessToken = (user) => {
 };
 
 const createRefreshToken = (role) => {
-  const jwtRefreshTokenSecretKey = process.env.JWT_REFRESH_TOKEN_SECRET_KEY;
+  const secretKey = process.env.JWT_REFRESH_TOKEN_SECRET_KEY;
 
-  if (!jwtRefreshTokenSecretKey) {
+  if (!secretKey) {
     throw new ResponseError(
       422,
       "jwt secret key for refresh token is not provided"
@@ -51,7 +51,7 @@ const createRefreshToken = (role) => {
       uuid: uuidV4(),
       role: role,
     },
-    jwtRefreshTokenSecretKey,
+    secretKey,
     { expiresIn: "30d" }
   );
 
@@ -66,9 +66,36 @@ const comparePassword = async (password, encryptPassword) => {
   }
 };
 
+const createQRCodeToken = (orderId) => {
+  const secretKey = process.env.JWT_QRCODE_TOKEN_SECRET_KEY;
+  if (!secretKey) {
+    ResponseError(422, "qrcode token secret key is not provided");
+  }
+
+  const qrcodeToken = jwt.sign(
+    {
+      orderId: orderId,
+    },
+    secretKey,
+    { expiresIn: "30d" }
+  );
+
+  return qrcodeToken;
+};
+
+const verifyOtp = (requestOtp, existingOtp) => {
+  const compareOtp = requestOtp === existingOtp;
+
+  if (!compareOtp) {
+    throw new ResponseError(400, "otp is invalid");
+  }
+};
+
 export const authHelper = {
   generateOtp,
   createAccessToken,
   createRefreshToken,
   comparePassword,
+  createQRCodeToken,
+  verifyOtp,
 };

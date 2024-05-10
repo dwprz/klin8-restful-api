@@ -1,5 +1,5 @@
 import supertest from "supertest";
-import app from "../../src/apps/app/app.js";
+import app from "../../src/apps/app.js";
 import { userTestUtil } from "./user-test.util.js";
 
 // npx jest tests/user/update-password.test.js

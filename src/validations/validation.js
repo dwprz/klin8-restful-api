@@ -1,4 +1,4 @@
-import { ResponseError } from "../helpers/response-error.helper.js";
+import { ResponseError } from "../helpers/error.helper.js";
 
 const validation = (data, schema) => {
   const res = schema.safeParse(data);

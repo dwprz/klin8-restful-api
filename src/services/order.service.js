@@ -1,5 +1,8 @@
-import prismaService from "../apps/database/db.js";
-import { orderHelper } from "../helpers/order.helper.js";
+import prismaService from "../apps/database.js";
+import { authHelper } from "../helpers/auth.helper.js";
+import { ResponseError } from "../helpers/error.helper.js";
+import { pagingHelper } from "../helpers/paging.helper.js";
+import { orderUtil } from "../utils/order.util.js";
 import { orderValidation } from "../validations/order.validation.js";
 import validation from "../validations/validation.js";
 
@@ -9,35 +12,70 @@ const createOrder = async (createOrderRequest) => {
     orderValidation.createOrderRequest
   );
 
-  const order = await prismaService.order.create({
-    data: createOrderRequest,
-  });
+  try {
+    await prismaService.$queryRaw`
+    BEGIN TRANSACTION;
+    `;
 
-  const statuses = await orderHelper.createStatuses(order);
+    const order = await prismaService.order.create({
+      data: createOrderRequest,
+    });
 
-  return { ...order, statuses };
+    const statuses = await orderUtil.createStatusesOrders(order);
+
+    const qrcodeToken = authHelper.createQRCodeToken(order.orderId);
+
+    await prismaService.$queryRaw`
+    COMMIT TRANSACTION;
+    `;
+
+    const data = { ...order, statuses };
+
+    return { data, qrcodeToken };
+  } catch (error) {
+    await prismaService.$queryRaw`
+    ROLLBACK TRANSACTION;
+    `;
+  }
 };
 
 const getAllOrders = async (page) => {
   page = validation(page, orderValidation.page);
 
-  const take = 20;
-  const skip = (page - 1) * take;
+  const { take, skip } = pagingHelper.createTakeAndSkip(page);
 
   let orders = await prismaService.$queryRaw`
-  SELECT 
-    * 
-  FROM 
-      orders as o 
-  INNER JOIN 
-      statuses as s ON s."orderId" = o."orderId"
-  ORDER BY
-      o."createdAt" DESC 
+  SELECT * FROM orders  
+  ORDER BY "createdAt" DESC
   LIMIT ${take} OFFSET ${skip};
   `;
 
-  orders = orderHelper.transformOrders(orders);
-  return orders;
+  orders = await orderUtil.getStatusesOrders(orders);
+
+  const [{ totalOrders }] = await prismaService.$queryRaw`
+  SELECT CAST(COUNT("orderId") as INTEGER) as "totalOrders" FROM orders;
+  `;
+
+  const result = pagingHelper.formatePagedData(orders, totalOrders, page, take);
+  return result;
+};
+
+const getOrdersCount = async () => {
+  const totalCompletedOrders = await orderUtil.getOrdersCountByStatus(
+    "COMPLETED"
+  );
+
+  const totalCanceledOrders = await orderUtil.getOrdersCountByStatus(
+    "CANCELED"
+  );
+
+  const totalUncompletedOrders = await orderUtil.getUncompletedOrdersCount();
+
+  return {
+    totalCompletedOrders,
+    totalCanceledOrders,
+    totalUncompletedOrders,
+  };
 };
 
 const getOrdersByCustomer = async (getOrdersByCustomerRequest) => {
@@ -46,27 +84,35 @@ const getOrdersByCustomer = async (getOrdersByCustomerRequest) => {
     orderValidation.getOrdersByCustomerRequest
   );
 
-  const take = 20;
-  const skip = (page - 1) * take;
+  const { take, skip } = pagingHelper.createTakeAndSkip(page);
 
   customerName = customerName.split(" ").join(" & ");
 
   let orders = await prismaService.$queryRaw`
   SELECT 
-      o.*, s.*
+      *
   FROM 
-      orders as o
-  INNER JOIN
-      statuses as s ON s."orderId" = o."orderId"
+      orders
   WHERE 
       to_tsvector("customerName") @@ to_tsquery(${customerName})
   ORDER BY
-      o."createdAt" DESC
+      "createdAt" DESC
   LIMIT ${take} OFFSET ${skip};
   `;
 
-  orders = orderHelper.transformOrders(orders);
-  return orders;
+  orders = await orderUtil.getStatusesOrders(orders);
+
+  const [{ totalOrders }] = await prismaService.$queryRaw`
+  SELECT 
+    CAST(COUNT("orderId") as INTEGER) as "totalOrders" 
+  FROM 
+      orders
+  WHERE
+      to_tsvector("customerName") @@ to_tsquery(${customerName});
+  `;
+
+  const result = pagingHelper.formatePagedData(orders, totalOrders, page, take);
+  return result;
 };
 
 const getOrdersByStatus = async (getOrdersByStatusRequest) => {
@@ -75,25 +121,39 @@ const getOrdersByStatus = async (getOrdersByStatusRequest) => {
     orderValidation.getOrdersByStatusRequest
   );
 
-  const take = 20;
-  const skip = (page - 1) * take;
+  const { take, skip } = pagingHelper.createTakeAndSkip(page);
+
+  if (status === "UNCOMPLETED") {
+    const result = await orderUtil.getUncompletedOrders(page);
+    return result;
+  }
 
   let orders = await prismaService.$queryRaw`
   SELECT 
-      o.*, s.*
+      *
   FROM 
-      orders as o
-  INNER JOIN
-      statuses as s ON s."orderId" = o."orderId"
+      orders 
   WHERE 
-      s."statusName"::text = ${status}
+      "orderId" IN (
+          SELECT
+              "orderId"
+          FROM
+              statuses
+          WHERE
+              "statusName"::text = ${status}
+              AND
+              "isCurrentStatus" = TRUE
+      )
   ORDER BY
-      o."createdAt" DESC
+      "createdAt" DESC
   LIMIT ${take} OFFSET ${skip};
   `;
 
-  orders = orderHelper.transformOrders(orders);
-  return orders;
+  orders = await orderUtil.getStatusesOrders(orders);
+  const totalOrders = await orderUtil.getOrdersCountByStatus(status);
+
+  const result = pagingHelper.formatePagedData(orders, totalOrders, page, take);
+  return result;
 };
 
 const getOrdersByCurrentUser = async (getOrdersByCurrentUserRequest) => {
@@ -102,25 +162,44 @@ const getOrdersByCurrentUser = async (getOrdersByCurrentUserRequest) => {
     orderValidation.getOrdersByCurrentUserRequest
   );
 
-  const take = 20;
-  const skip = (page - 1) * take;
+  const { take, skip } = pagingHelper.createTakeAndSkip(page);
 
   let orders = await prismaService.$queryRaw`
   SELECT 
-    o.*, s.*
+      *
   FROM 
-      orders as o
-  INNER JOIN
-      statuses as s ON s."orderId" = o."orderId"
+      orders
   WHERE 
-      o."userId" = ${userId} AND o."isDeleted" = FALSE
+      "userId" = ${userId} AND "isDeleted" = FALSE
   ORDER BY
-      o."createdAt" DESC
+      "createdAt" DESC
   LIMIT ${take} OFFSET ${skip};
   `;
 
-  orders = orderHelper.transformOrders(orders);
-  return orders;
+  orders = await orderUtil.getStatusesOrders(orders);
+
+  const [{ totalOrders }] = await prismaService.$queryRaw`
+  SELECT 
+    CAST(COUNT("orderId") as INTEGER) as "totalOrders" 
+  FROM 
+      orders
+  WHERE
+      "userId" = ${userId} AND "isDeleted" = FALSE;
+  `;
+
+  const result = pagingHelper.formatePagedData(orders, totalOrders, page, take);
+  return result;
+};
+
+const getOrderById = async (orderId) => {
+
+  const order = await prismaService.$queryRaw`
+  SELECT * FROM orders 
+  WHERE "orderId" = ${orderId}
+  `;
+
+  const result = await orderUtil.getStatusesOrders(order);
+  return result;
 };
 
 const updateStatus = async (updateStatusRequest) => {
@@ -132,19 +211,19 @@ const updateStatus = async (updateStatusRequest) => {
   await prismaService.$queryRaw`
   UPDATE statuses
   SET
-      "isCurrentStatus" = CASE
-          WHEN "statusName"::text = ${status} THEN TRUE
-          ELSE FALSE
-      END,
-      "date" = CASE
-          WHEN "statusName"::text = ${status} THEN now()
-          ELSE "date"
-      END
+    "isCurrentStatus" = CASE
+        WHEN "statusName"::text = ${status} THEN TRUE
+        ELSE FALSE
+    END,
+    "date" = CASE
+        WHEN "statusName"::text = ${status} THEN now()
+        ELSE "date"
+    END
   WHERE
-      "orderId" = ${orderId};
+    "orderId" = ${orderId};
   `;
 
-  const order = await prismaService.$queryRaw`
+  const [order] = await prismaService.$queryRaw`
   SELECT * FROM orders
   WHERE "orderId" = ${orderId};
   `;
@@ -154,7 +233,7 @@ const updateStatus = async (updateStatusRequest) => {
   WHERE "orderId" = ${orderId};
   `;
 
-  return { ...order[0], statuses };
+  return { ...order, statuses };
 };
 
 const deleteOrder = async (orderId) => {
@@ -189,9 +268,11 @@ const deleteOrderPermanently = async (orderId) => {
 export const orderService = {
   createOrder,
   getAllOrders,
+  getOrdersCount,
   getOrdersByCustomer,
   getOrdersByStatus,
   getOrdersByCurrentUser,
+  getOrderById,
   updateStatus,
   deleteOrder,
   deleteOrderPermanently,

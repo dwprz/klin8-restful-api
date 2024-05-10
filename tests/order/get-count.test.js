@@ -3,9 +3,9 @@ import app from "../../src/apps/app.js";
 import { userTestUtil } from "../user/user-test.util.js";
 import { orderTestUtil } from "./order-test.util.js";
 
-// npx jest tests/order/get-all.test.js
+// npx jest tests/order/get-count.test.js
 
-describe("GET /api/orders", () => {
+describe("GET /api/orders/count", () => {
   let adminEmail;
   let adminPassword;
 
@@ -33,7 +33,7 @@ describe("GET /api/orders", () => {
     await userTestUtil.removeUser();
   });
 
-  it("get all orders should be successful", async () => {
+  it("get orders count should be successful", async () => {
     const loginRes = await supertest(app).post("/api/users/login").send({
       email: adminEmail,
       password: adminPassword,
@@ -42,15 +42,14 @@ describe("GET /api/orders", () => {
     const cookies = loginRes.get("Set-Cookie");
 
     const result = await supertest(app)
-      .get(`/api/orders?page=1`)
+      .get(`/api/orders/count`)
       .set("Cookie", cookies);
 
     expect(result.status).toBe(200);
     expect(result.body.data).toBeDefined();
-    expect(result.body.paging).toBeDefined();
   });
 
-  it("get all orders should fail if role is not admin", async () => {
+  it("get orders count should fail if role is not admin", async () => {
     const loginRes = await supertest(app).post("/api/users/login").send({
       email: userEmail,
       password: userPassword,
@@ -59,7 +58,7 @@ describe("GET /api/orders", () => {
     const cookies = loginRes.get("Set-Cookie");
 
     const result = await supertest(app)
-      .get(`/api/orders?page=1`)
+      .get(`/api/orders/count`)
       .set("Cookie", cookies);
 
     expect(result.status).toBe(403);

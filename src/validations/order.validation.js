@@ -34,6 +34,7 @@ const getOrdersByStatusRequest = z.object({
     "BEING_DELIVERED",
     "READY_FOR_COLLECTION",
     "COMPLETED",
+    "UNCOMPLETED",
     "CANCELED",
   ]),
   page: z.number().min(1).int(),

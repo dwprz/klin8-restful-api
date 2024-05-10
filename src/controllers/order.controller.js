@@ -6,8 +6,8 @@ const createOrder = async (req, res, next) => {
 
     role === "ADMIN" ? (req.body.userId = null) : (req.body.userId = userId);
 
-    const result = await orderService.createOrder(req.body);
-    res.status(201).json({ data: result });
+    const { data, qrcodeToken } = await orderService.createOrder(req.body);
+    res.status(201).json({ data, qrcodeToken });
   } catch (error) {
     next(error);
   }
@@ -17,7 +17,16 @@ const getAllOrders = async (req, res, next) => {
   try {
     const page = Number(req.query["page"]);
 
-    const result = await orderService.getAllOrders(page);
+    const { data, paging } = await orderService.getAllOrders(page);
+    res.status(200).json({ data, paging });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const getOrdersCount = async (req, res, next) => {
+  try {
+    const result = await orderService.getOrdersCount();
     res.status(200).json({ data: result });
   } catch (error) {
     next(error);
@@ -29,12 +38,12 @@ const getOrdersByCustomer = async (req, res, next) => {
     const customerName = decodeURIComponent(req.params["customerName"]);
     const page = Number(req.query["page"]);
 
-    const result = await orderService.getOrdersByCustomer({
+    const { data, paging } = await orderService.getOrdersByCustomer({
       customerName,
       page,
     });
 
-    res.status(200).json({ data: result });
+    res.status(200).json({ data, paging });
   } catch (error) {
     next(error);
   }
@@ -45,8 +54,12 @@ const getOrdersByStatus = async (req, res, next) => {
     const status = req.params["orderStatus"];
     const page = Number(req.query["page"]);
 
-    const result = await orderService.getOrdersByStatus({ status, page });
-    res.status(200).json({ data: result });
+    const { data, paging } = await orderService.getOrdersByStatus({
+      status,
+      page,
+    });
+
+    res.status(200).json({ data, paging });
   } catch (error) {
     next(error);
   }
@@ -57,7 +70,22 @@ const getOrdersByCurrentUser = async (req, res, next) => {
     const { userId } = req.userData;
     const page = Number(req.query["page"]);
 
-    const result = await orderService.getOrdersByCurrentUser({ userId, page });
+    const { data, paging } = await orderService.getOrdersByCurrentUser({
+      userId,
+      page,
+    });
+
+    res.status(200).json({ data, paging });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const getOrderById = async (req, res, next) => {
+  try {
+    const orderId = Number(req["orderId"]);
+    const result = await orderService.getOrderById(orderId);
+
     res.status(200).json({ data: result });
   } catch (error) {
     next(error);
@@ -100,9 +128,11 @@ const deleteOrderPermanently = async (req, res, next) => {
 export const orderController = {
   createOrder,
   getAllOrders,
+  getOrdersCount,
   getOrdersByCustomer,
   getOrdersByStatus,
   getOrdersByCurrentUser,
+  getOrderById,
   updateStatus,
   deleteOrder,
   deleteOrderPermanently,

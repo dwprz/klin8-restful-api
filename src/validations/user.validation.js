@@ -5,6 +5,12 @@ const getAllByRoleRequest = z.object({
   role: z.string().max(20),
 });
 
+const getByFullNameRequest = z.object({
+  page: z.number().min(1).int(),
+  role: z.string().max(20),
+  fullName: z.string().min(5).max(100),
+});
+
 const updateUserRequest = z
   .object({
     email: z.string().min(5).max(100),
@@ -40,6 +46,7 @@ const updatePhotoProfileRequest = z
 
 export const userValidation = {
   getAllByRoleRequest,
+  getByFullNameRequest,
   updateUserRequest,
   updateEmailRequest,
   updatePasswordRequest,

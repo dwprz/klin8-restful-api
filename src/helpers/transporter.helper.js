@@ -1,13 +1,13 @@
-import nodemailer from "nodemailer";
-import { ResponseError } from "../../helpers/response-error.helper.js";
 import { google } from "googleapis";
+import { ResponseError } from "./error.helper.js";
+import createTransporter from "../apps/transporter.js";
 
-const createTransporter = async () => {
-  const gmailMaster = process.env.GMAIL_MASTER;
-  const clientId = process.env.OAUTH2_CLIENT_ID;
-  const clientSecret = process.env.OAUTH2_CLIENT_SECRET;
-  const refreshToken = process.env.OAUTH2_REFRESH_TOKEN;
-
+const checkEnvironment = (
+  gmailMaster,
+  clientId,
+  clientSecret,
+  refreshToken
+) => {
   if (!gmailMaster) {
     throw new ResponseError(422, "gmail master is not provided");
   }
@@ -23,7 +23,9 @@ const createTransporter = async () => {
   if (!refreshToken) {
     throw new ResponseError(422, "oauth2 refresh token is not provided");
   }
+};
 
+const getOauth2AccessToken = async (clientId, clientSecret, refreshToken) => {
   const Oauth2 = google.auth.OAuth2;
 
   const oauth2Client = new Oauth2({
@@ -37,23 +39,25 @@ const createTransporter = async () => {
   });
 
   const accessToken = await oauth2Client.getAccessToken();
-
-  const transporter = nodemailer.createTransport({
-    service: "gmail",
-    host: "smtp.gmail.com",
-    port: 465,
-    secure: true,
-    auth: {
-      type: "OAuth2",
-      user: gmailMaster,
-      clientId: clientId,
-      clientSecret: clientSecret,
-      refreshToken: refreshToken,
-      accessToken: accessToken,
-    },
-  });
-
-  return transporter;
+  return accessToken;
 };
 
-export default createTransporter;
+const sendMail = async (gmailMaster, email, template) => {
+  const transporter = await createTransporter();
+
+  await transporter.sendMail({
+    from: {
+      name: "klin8",
+      address: gmailMaster,
+    },
+    to: email,
+    subject: "Veryfication With OTP",
+    html: template,
+  });
+};
+
+export const transporterHelper = {
+  checkEnvironment,
+  getOauth2AccessToken,
+  sendMail,
+};

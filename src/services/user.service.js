@@ -1,23 +1,18 @@
-import prismaService from "../apps/database/db.js";
+import prismaService from "../apps/database.js";
 import { authHelper } from "../helpers/auth.helper.js";
-import deleteFile from "../helpers/delete-file.helper.js";
-import { ResponseError } from "../helpers/response-error.helper.js";
+import { fileHelper } from "../helpers/file.helper.js";
+import { pagingHelper } from "../helpers/paging.helper.js";
+import { userHelper } from "../helpers/user.helper.js";
+import { userUtil } from "../utils/user.util.js";
 import { userValidation } from "../validations/user.validation.js";
 import validation from "../validations/validation.js";
 import bcrypt from "bcrypt";
 
 const getUserByEmail = async (email) => {
-  const findUser = await prismaService.user.findUnique({
-    where: {
-      email: email,
-    },
-  });
+  const { password, refreshToken, ...user } = await userUtil.findUserByEmail(
+    email
+  );
 
-  if (!findUser) {
-    throw new ResponseError(404, "user not found");
-  }
-
-  const { password, refreshToken, ...user } = findUser;
   return user;
 };
 
@@ -26,10 +21,10 @@ const getUsersByRole = async (getAllByRoleRequest) => {
     getAllByRoleRequest,
     userValidation.getAllByRoleRequest
   );
-  const take = 20;
-  const skip = (page - 1) * take;
 
-  const users = await prismaService.user.findMany({
+  const { take, skip } = pagingHelper.createTakeAndSkip(page);
+
+  let users = await prismaService.user.findMany({
     where: {
       role: role,
     },
@@ -37,16 +32,35 @@ const getUsersByRole = async (getAllByRoleRequest) => {
     skip: skip,
   });
 
-  if (!users.length) {
-    return [];
-  }
+  users = userHelper.transfromUsers(users);
+  const totalUsers = await userUtil.getUsersCountByFields(getAllByRoleRequest);
 
-  const processedUsers = users.map((user) => {
-    const { password, refreshToken, ...rest } = user;
-    return rest;
+  const result = pagingHelper.formatePagedData(users, totalUsers, page, take);
+  return result;
+};
+
+const getUsersByFullName = async (getByFullNameRequest) => {
+  const { fullName, role, page } = validation(
+    getByFullNameRequest,
+    userValidation.getByFullNameRequest
+  );
+
+  const { take, skip } = pagingHelper.createTakeAndSkip(page);
+
+  let users = await prismaService.user.findMany({
+    where: {
+      fullName: fullName,
+      role: role,
+    },
+    take: take,
+    skip: skip,
   });
 
-  return processedUsers;
+  users = userHelper.transfromUsers(users);
+  const totalUsers = await userUtil.getUsersCountByFields(getByFullNameRequest);
+
+  const result = pagingHelper.formatePagedData(users, totalUsers, page, take);
+  return result;
 };
 
 const updateUser = async (updateUserRequest) => {
@@ -55,15 +69,7 @@ const updateUser = async (updateUserRequest) => {
     userValidation.updateUserRequest
   );
 
-  const findUser = await prismaService.user.findUnique({
-    where: {
-      email: updateUserRequest.email,
-    },
-  });
-
-  if (!findUser) {
-    throw new ResponseError(404, "user not found");
-  }
+  const findUser = await userUtil.findUserByEmail(updateUserRequest.email);
 
   await authHelper.comparePassword(
     updateUserRequest.password,
@@ -88,15 +94,7 @@ const updateEmail = async (updateEmailRequest) => {
     userValidation.updateEmailRequest
   );
 
-  const findUser = await prismaService.user.findUnique({
-    where: {
-      email: updateEmailRequest.email,
-    },
-  });
-
-  if (!findUser) {
-    throw new ResponseError(404, "user not found");
-  }
+  const findUser = await userUtil.findUserByEmail(updateEmailRequest.email);
 
   await authHelper.comparePassword(
     updateEmailRequest.password,
@@ -126,15 +124,7 @@ const updatePassword = async (updatePasswordRequest) => {
     userValidation.updatePasswordRequest
   );
 
-  const findUser = await prismaService.user.findUnique({
-    where: {
-      email: updatePasswordRequest.email,
-    },
-  });
-
-  if (!findUser) {
-    throw new ResponseError(404, "user not found");
-  }
+  const findUser = await userUtil.findUserByEmail(updatePasswordRequest.email);
 
   await authHelper.comparePassword(
     updatePasswordRequest.password,
@@ -159,18 +149,10 @@ const updatePhotoProfile = async (updatePhotoProfileRequest) => {
     userValidation.updatePhotoProfileRequest
   );
 
-  const findUser = await prismaService.user.findUnique({
-    where: {
-      email: email,
-    },
-  });
-
-  if (!findUser) {
-    throw new ResponseError(404, "user not found");
-  }
+  const findUser = await userUtil.findUserByEmail(email);
 
   if (findUser.photoProfile) {
-    deleteFile(findUser.photoProfile);
+    fileHelper.deleteFile(findUser.photoProfile);
   }
 
   const { password, refreshToken, ...user } = await prismaService.user.update({
@@ -188,6 +170,7 @@ const updatePhotoProfile = async (updatePhotoProfileRequest) => {
 export const userService = {
   getUserByEmail,
   getUsersByRole,
+  getUsersByFullName,
   updateUser,
   updateEmail,
   updatePassword,

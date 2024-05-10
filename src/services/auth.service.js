@@ -1,12 +1,13 @@
-import prismaService from "../apps/database/db.js";
-import { ResponseError } from "../helpers/response-error.helper.js";
+import prismaService from "../apps/database.js";
+import { ResponseError } from "../helpers/error.helper.js";
 import { authValidation } from "../validations/auth.validation.js";
 import validation from "../validations/validation.js";
 import { authHelper } from "../helpers/auth.helper.js";
-import createTransporter from "../apps/transporter/transporter.js";
-import { readFileSync } from "fs";
-import mustache from "mustache";
 import bcrypt from "bcrypt";
+import { templateHelper } from "../helpers/template.helper.js";
+import { transporterHelper } from "../helpers/transporter.helper.js";
+import { authUtil } from "../utils/auth.util.js";
+import { userUtil } from "../utils/user.util.js";
 
 const sendOtp = async (email) => {
   email = validation(email, authValidation.email);
@@ -18,38 +19,18 @@ const sendOtp = async (email) => {
     throw new ResponseError(422, "gmail user is not provided");
   }
 
-  const template = readFileSync(
-    process.cwd() + "/src/template/otp.html",
-    "utf-8"
-  );
+  const template = templateHelper.renderTemplate("/src/template/otp.html", otp);
 
-  const renderTemplate = mustache.render(template, { otp });
+  await transporterHelper.sendMail(gmailMaster, email, template);
 
-  const transporter = await createTransporter();
-
-  return transporter
-    .sendMail({
-      from: {
-        name: "klin8",
-        address: gmailMaster,
-      },
-      to: email,
-      subject: "Veryfication With OTP",
-      html: renderTemplate,
-    })
-    .then(async () => {
-      await prismaService.$queryRaw`
-      INSERT INTO 
-          otp (email, otp) VALUES (${email}, ${otp})
-      ON CONFLICT 
-          (email)
-      DO UPDATE SET 
-          otp = ${otp};
-      `;
-    })
-    .catch((error) => {
-      throw new ResponseError(500, "failed to send otp");
-    });
+  await prismaService.$queryRaw`
+  INSERT INTO 
+      otp (email, otp) VALUES (${email}, ${otp})
+  ON CONFLICT 
+      (email)
+  DO UPDATE SET 
+      otp = ${otp};
+  `;
 };
 
 const verifyOtp = async (verifyOtpRequest) => {
@@ -58,21 +39,9 @@ const verifyOtp = async (verifyOtpRequest) => {
     authValidation.verifyOtpRequest
   );
 
-  const findOtp = await prismaService.otp.findUnique({
-    where: {
-      email: verifyOtpRequest.email,
-    },
-  });
+  const findOtp = await authUtil.findOtpByEmail(verifyOtpRequest.email);
 
-  if (!findOtp) {
-    throw new ResponseError(404, "no otp matches the email");
-  }
-
-  const compareOtp = verifyOtpRequest.otp === findOtp.otp;
-
-  if (!compareOtp) {
-    throw new ResponseError(400, "otp is invalid");
-  }
+  authHelper.verifyOtp(verifyOtpRequest.otp, findOtp.otp);
 
   await prismaService.otp.delete({
     where: {
@@ -110,15 +79,7 @@ const createUser = async (registerRequest) => {
 const authenticateUser = async (loginRequest) => {
   loginRequest = validation(loginRequest, authValidation.loginRequest);
 
-  const findUser = await prismaService.user.findUnique({
-    where: {
-      email: loginRequest.email,
-    },
-  });
-
-  if (!findUser) {
-    throw new ResponseError(404, "user not found");
-  }
+  const findUser = await userUtil.findUserByEmail(loginRequest.email);
 
   await authHelper.comparePassword(loginRequest.password, findUser.password);
 
@@ -184,7 +145,7 @@ const generateNewAccessToken = async (refreshToken) => {
   }
 
   const accessToken = authHelper.createAccessToken(findUser);
-  const { password, refreshToken:rt, ...user } = findUser;
+  const { password, refreshToken: rt, ...user } = findUser;
 
   return { accessToken, user };
 };

@@ -1,5 +1,5 @@
 import supertest from "supertest";
-import app from "../../src/apps/app/app.js";
+import app from "../../src/apps/app.js";
 import { userTestUtil } from "../user/user-test.util.js";
 import { orderTestUtil } from "./order-test.util.js";
 
@@ -39,6 +39,7 @@ describe("GET /api/orders/current-user", () => {
 
     expect(result.status).toBe(200);
     expect(result.body.data).toBeDefined();
+    expect(result.body.paging).toBeDefined();
   });
 
   it("get orders by current user should fail without accessToken cookie ", async () => {

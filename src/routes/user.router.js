@@ -9,6 +9,7 @@ const userRouter = express.Router();
 
 // admin
 userRouter.get("/api/users", verifyTokenMiddleware, verifyAdminMiddleware, userController.getUsersByRole);
+userRouter.get("/api/users/full-name/:fullName", verifyTokenMiddleware, verifyAdminMiddleware, userController.getUsersByFullName);
 
 // user & admin
 userRouter.get("/api/users/current", verifyTokenMiddleware, userController.getCurrentUser);
