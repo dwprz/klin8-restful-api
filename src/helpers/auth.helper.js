@@ -66,23 +66,6 @@ const comparePassword = async (password, encryptPassword) => {
   }
 };
 
-const createQRCodeToken = (orderId) => {
-  const secretKey = process.env.JWT_QRCODE_TOKEN_SECRET_KEY;
-  if (!secretKey) {
-    ResponseError(422, "qrcode token secret key is not provided");
-  }
-
-  const qrcodeToken = jwt.sign(
-    {
-      orderId: orderId,
-    },
-    secretKey,
-    { expiresIn: "30d" }
-  );
-
-  return qrcodeToken;
-};
-
 const verifyOtp = (requestOtp, existingOtp) => {
   const compareOtp = requestOtp === existingOtp;
 
@@ -96,6 +79,5 @@ export const authHelper = {
   createAccessToken,
   createRefreshToken,
   comparePassword,
-  createQRCodeToken,
   verifyOtp,
 };

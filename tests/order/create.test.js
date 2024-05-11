@@ -58,7 +58,6 @@ describe("POST /api/orders", () => {
 
     expect(result.status).toBe(201);
     expect(result.body.data).toBeDefined();
-    expect(result.body.qrcodeToken).toBeDefined();
   });
 
   it("create order should fail without accessToken cookie", async () => {

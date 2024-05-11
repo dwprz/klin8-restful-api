@@ -6,8 +6,8 @@ const createOrder = async (req, res, next) => {
 
     role === "ADMIN" ? (req.body.userId = null) : (req.body.userId = userId);
 
-    const { data, qrcodeToken } = await orderService.createOrder(req.body);
-    res.status(201).json({ data, qrcodeToken });
+    const result = await orderService.createOrder(req.body);
+    res.status(201).json({ data: result });
   } catch (error) {
     next(error);
   }
@@ -83,7 +83,7 @@ const getOrdersByCurrentUser = async (req, res, next) => {
 
 const getOrderById = async (req, res, next) => {
   try {
-    const orderId = Number(req["orderId"]);
+    const orderId = Number(req.params["orderId"]);
     const result = await orderService.getOrderById(orderId);
 
     res.status(200).json({ data: result });

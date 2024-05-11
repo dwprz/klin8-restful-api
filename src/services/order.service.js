@@ -1,6 +1,5 @@
 import prismaService from "../apps/database.js";
 import { authHelper } from "../helpers/auth.helper.js";
-import { ResponseError } from "../helpers/error.helper.js";
 import { pagingHelper } from "../helpers/paging.helper.js";
 import { orderUtil } from "../utils/order.util.js";
 import { orderValidation } from "../validations/order.validation.js";
@@ -23,15 +22,11 @@ const createOrder = async (createOrderRequest) => {
 
     const statuses = await orderUtil.createStatusesOrders(order);
 
-    const qrcodeToken = authHelper.createQRCodeToken(order.orderId);
-
     await prismaService.$queryRaw`
     COMMIT TRANSACTION;
     `;
 
-    const data = { ...order, statuses };
-
-    return { data, qrcodeToken };
+    return { ...order, statuses };
   } catch (error) {
     await prismaService.$queryRaw`
     ROLLBACK TRANSACTION;
@@ -192,13 +187,14 @@ const getOrdersByCurrentUser = async (getOrdersByCurrentUserRequest) => {
 };
 
 const getOrderById = async (orderId) => {
+  orderId = validation(orderId, orderValidation.orderId);
 
   const order = await prismaService.$queryRaw`
   SELECT * FROM orders 
   WHERE "orderId" = ${orderId}
   `;
 
-  const result = await orderUtil.getStatusesOrders(order);
+  const [result] = await orderUtil.getStatusesOrders(order);
   return result;
 };
 

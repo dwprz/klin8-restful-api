@@ -117,6 +117,7 @@ WHERE
 
 
 SELECT * FROM orders;
+SELECT * FROM statuses;
 
   SELECT 
     * 
