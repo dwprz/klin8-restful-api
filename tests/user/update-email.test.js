@@ -1,20 +1,30 @@
 import supertest from "supertest";
 import app from "../../src/apps/app.js";
 import { userTestUtil } from "./user-test.util.js";
+import { authTestUtil } from "../auth/auth-test.util.js";
 
 // npx jest tests/user/update-email.test.js
 
 describe("PATCH /api/users/current/email", () => {
   let userEmail;
+  let newUserEmail;
   let userPassword;
+
+  const otp = "123456";
 
   beforeAll(async () => {
     const user = await userTestUtil.createUser();
     userEmail = user.email;
+    newUserEmail = "new" + user.email;
     userPassword = user.password;
   });
 
+  beforeEach(async () => {
+    await authTestUtil.createOtp(newUserEmail, otp);
+  });
+
   afterAll(async () => {
+    await authTestUtil.removeOtp(newUserEmail);
     await userTestUtil.removeUser();
   });
 
@@ -29,8 +39,8 @@ describe("PATCH /api/users/current/email", () => {
     const result = await supertest(app)
       .patch(`/api/users/current/email`)
       .send({
-        newEmail: "New " + userEmail,
-        password: userPassword,
+        newEmail: newUserEmail,
+        otp: otp,
       })
       .set("Cookie", cookies);
 

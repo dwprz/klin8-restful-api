@@ -1,25 +1,23 @@
 import prismaService from "../../src/apps/database.js";
 
-const createOtp = async () => {
+const createOtp = async (email, otp) => {
   try {
-    const { otp } = await prismaService.otp.create({
+    await prismaService.otp.create({
       data: {
-        email: "klin8shoes@gmail.com",
-        otp: "123456",
+        email: email,
+        otp: otp,
       },
     });
-
-    return otp;
   } catch (error) {
     console.log(error.message);
   }
 };
 
-const removeOtp = async () => {
+const removeOtp = async (email) => {
   try {
     await prismaService.otp.delete({
       where: {
-        email: "klin8shoes@gmail.com",
+        email: email,
       },
     });
   } catch (error) {

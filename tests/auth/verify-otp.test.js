@@ -5,31 +5,30 @@ import { authTestUtil } from "./auth-test.util.js";
 // npx jest tests/auth/verify-otp.test.js
 
 describe("POST /api/users/otp/verify", () => {
-  let otp;
+  const email = "userTest123@gmail.com";
+  const otp = "123456";
 
-  beforeAll(async () => {
-    otp = await authTestUtil.createOtp();
+  beforeEach(async () => {
+    await authTestUtil.createOtp(email, otp);
   });
 
   afterAll(async () => {
-    await authTestUtil.removeOtp();
+    await authTestUtil.removeOtp(email);
   });
 
   it("verify otp should be successful", async () => {
     const result = await supertest(app).post("/api/users/otp/verify").send({
-      email: "klin8shoes@gmail.com",
+      email: email,
       otp: otp,
     });
 
     expect(result.status).toBe(200);
     expect(result.body.error).toBeUndefined();
-
-    await authTestUtil.removeOtp();
   });
 
   it("verify otp should fail if otp is incorrect", async () => {
     const result = await supertest(app).post("/api/users/otp/verify").send({
-      email: "klin8shoes@gmail.com",
+      email: email,
       otp: "inccorect otp",
     });
 

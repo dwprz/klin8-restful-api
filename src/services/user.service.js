@@ -7,6 +7,7 @@ import { userUtil } from "../utils/user.util.js";
 import { userValidation } from "../validations/user.validation.js";
 import validation from "../validations/validation.js";
 import bcrypt from "bcrypt";
+import { authService } from "./auth.service.js";
 
 const getUserByEmail = async (email) => {
   const { password, refreshToken, ...user } = await userUtil.findUserByEmail(
@@ -89,30 +90,27 @@ const updateUser = async (updateUserRequest) => {
 };
 
 const updateEmail = async (updateEmailRequest) => {
-  updateEmailRequest = validation(
+  const { email, newEmail, otp } = validation(
     updateEmailRequest,
     userValidation.updateEmailRequest
   );
 
-  const findUser = await userUtil.findUserByEmail(updateEmailRequest.email);
+  const findUser = await userUtil.findUserByEmail(email);
 
-  await authHelper.comparePassword(
-    updateEmailRequest.password,
-    findUser.password
-  );
+  await authService.verifyOtp({ email: newEmail, otp: otp });
 
   const { password, refreshToken, ...user } = await prismaService.user.update({
     where: {
-      email: updateEmailRequest.email,
+      email: email,
     },
     data: {
-      email: updateEmailRequest.newEmail,
+      email: newEmail,
     },
   });
 
   const newAccessToken = authHelper.createAccessToken({
     ...findUser,
-    email: updateEmailRequest.newEmail,
+    email: newEmail,
   });
 
   return { user, newAccessToken };

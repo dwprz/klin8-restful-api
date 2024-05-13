@@ -25,7 +25,7 @@ const updateEmailRequest = z
   .object({
     email: z.string().min(5).max(100),
     newEmail: z.string().min(5).max(100),
-    password: z.string().min(5).max(100),
+    otp: z.string().max(6),
   })
   .strict();
 
