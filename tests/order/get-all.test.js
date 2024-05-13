@@ -45,8 +45,6 @@ describe("GET /api/orders", () => {
       .get(`/api/orders?page=1`)
       .set("Cookie", cookies);
 
-      console.log(result.body.data, "ini 1");
-
     expect(result.status).toBe(200);
     expect(result.body.data).toBeDefined();
     expect(result.body.paging).toBeDefined();

@@ -15,7 +15,7 @@ const registerRequest = z
   })
   .strict();
 
-const loginRequest = z.object({
+const authenticateRequest = z.object({
   email: z.string().min(5).max(100),
   password: z.string().min(5).max(100),
 });
@@ -32,6 +32,6 @@ export const authValidation = {
   email,
   verifyOtpRequest,
   registerRequest,
-  loginRequest,
+  authenticateRequest,
   loginGoogleRequest,
 };

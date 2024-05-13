@@ -52,7 +52,7 @@ const verifyOtp = async (verifyOtpRequest) => {
   });
 };
 
-const createUser = async (registerRequest) => {
+const register = async (registerRequest) => {
   registerRequest = validation(registerRequest, authValidation.registerRequest);
 
   const findUser = await prismaService.user.findUnique({
@@ -78,8 +78,8 @@ const createUser = async (registerRequest) => {
   return user;
 };
 
-const authenticateUser = async (loginRequest) => {
-  loginRequest = validation(loginRequest, authValidation.loginRequest);
+const login = async (loginRequest) => {
+  loginRequest = validation(loginRequest, authValidation.authenticateRequest);
 
   const findUser = await userUtil.findUserByEmail(loginRequest.email);
 
@@ -100,7 +100,7 @@ const authenticateUser = async (loginRequest) => {
   return { user, tokens: { newAccessToken, newRefreshToken } };
 };
 
-const authenticateWithGoogle = async (loginGoogleRequest) => {
+const loginWithGoogle = async (loginGoogleRequest) => {
   loginGoogleRequest = validation(
     loginGoogleRequest,
     authValidation.loginGoogleRequest
@@ -163,12 +163,20 @@ const setNullRefreshToken = async (userId) => {
   });
 };
 
+const authenticateUser = async (authRequest) => {
+  authRequest = validation(authRequest, authValidation.authenticateRequest);
+
+  const findUser = await userUtil.findUserByEmail(authRequest.email);
+  await authHelper.comparePassword(authRequest.password, findUser.password);
+};
+
 export const authService = {
   sendOtp,
   verifyOtp,
-  createUser,
-  authenticateUser,
-  authenticateWithGoogle,
+  register,
+  login,
+  loginWithGoogle,
   generateNewAccessToken,
   setNullRefreshToken,
+  authenticateUser,
 };

@@ -20,7 +20,7 @@ const verifyOtp = async (req, res, next) => {
 
 const register = async (req, res, next) => {
   try {
-    const result = await authService.createUser(req.body);
+    const result = await authService.register(req.body);
     res.status(201).json({ data: result });
   } catch (error) {
     next(error);
@@ -29,7 +29,7 @@ const register = async (req, res, next) => {
 
 const login = async (req, res, next) => {
   try {
-    const { user, tokens } = await authService.authenticateUser(req.body);
+    const { user, tokens } = await authService.login(req.body);
 
     res.cookie("accessToken", tokens.newAccessToken, { httpOnly: true });
     res.cookie("refreshToken", tokens.newRefreshToken, { httpOnly: true });
@@ -40,9 +40,9 @@ const login = async (req, res, next) => {
   }
 };
 
-const loginGoogle = async (req, res, next) => {
+const loginWithGoogle = async (req, res, next) => {
   try {
-    const { user, tokens } = await authService.authenticateWithGoogle(req.body);
+    const { user, tokens } = await authService.loginWithGoogle(req.body);
 
     res.cookie("accessToken", tokens.newAccessToken, { httpOnly: true });
     res.cookie("refreshToken", tokens.newRefreshToken, { httpOnly: true });
@@ -89,12 +89,24 @@ const logout = async (req, res, next) => {
   }
 };
 
+const authenticateUser = async (req, res, next) => {
+  try {
+    const { email } = req.userData;
+    await authService.authenticateUser({ ...req.body, email });
+
+    res.status(200).json({ message: "authenticated user successfully" });
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const authController = {
   sendOtp,
   verifyOtp,
   register,
   login,
-  loginGoogle,
+  loginWithGoogle,
   refreshToken,
   logout,
+  authenticateUser,
 };
