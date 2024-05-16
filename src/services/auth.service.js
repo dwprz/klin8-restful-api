@@ -101,18 +101,17 @@ const login = async (loginRequest) => {
 };
 
 const loginWithGoogle = async (loginGoogleRequest) => {
-  loginGoogleRequest = validation(
+  const { email, fullName } = validation(
     loginGoogleRequest,
     authValidation.loginGoogleRequest
   );
 
   const result = await prismaService.user.upsert({
     where: {
-      email: loginGoogleRequest.email,
+      email: email,
     },
     update: {
-      ...loginGoogleRequest,
-      role: "USER",
+      fullName: fullName,
     },
     create: {
       ...loginGoogleRequest,
