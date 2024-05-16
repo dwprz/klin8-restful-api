@@ -1,6 +1,7 @@
 import { Prisma } from "@prisma/client";
 import prismaService from "../apps/database.js";
 import { orderHelper } from "../helpers/order.helper.js";
+import { pagingHelper } from "../helpers/paging.helper.js";
 
 const createStatusesOrders = async (order) => {
   const { orderId, serviceMode } = order;
@@ -109,14 +110,8 @@ const getUncompletedOrders = async (page) => {
   orders = await orderUtil.getStatusesOrders(orders);
   const totalOrders = await orderUtil.getUncompletedOrdersCount();
 
-  return {
-    data: orders,
-    paging: {
-      page: page,
-      totalOrders: totalOrders,
-      totalPages: Math.ceil(totalOrders / take),
-    },
-  };
+  const result = pagingHelper.formatePagedData(orders, totalOrders, page, take);
+  return result;
 };
 
 export const orderUtil = {

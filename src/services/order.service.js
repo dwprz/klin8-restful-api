@@ -1,4 +1,5 @@
 import prismaService from "../apps/database.js";
+import { ResponseError } from "../helpers/error.helper.js";
 import { pagingHelper } from "../helpers/paging.helper.js";
 import { orderUtil } from "../utils/order.util.js";
 import { orderValidation } from "../validations/order.validation.js";
@@ -192,6 +193,10 @@ const getOrderById = async (orderId) => {
   SELECT * FROM orders 
   WHERE "orderId" = ${orderId}
   `;
+
+  if (!order.length) {
+    throw new ResponseError(404, "order not found");
+  }
 
   const [result] = await orderUtil.getStatusesOrders(order);
   return result;
