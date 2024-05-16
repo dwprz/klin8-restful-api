@@ -8,6 +8,7 @@ import { userValidation } from "../validations/user.validation.js";
 import validation from "../validations/validation.js";
 import bcrypt from "bcrypt";
 import { authService } from "./auth.service.js";
+import { ResponseError } from "../helpers/error.helper.js";
 
 const getUserByEmail = async (email) => {
   const { password, refreshToken, ...user } = await userUtil.findUserByEmail(
@@ -99,21 +100,30 @@ const updateEmail = async (updateEmailRequest) => {
 
   await authService.verifyOtp({ email: newEmail, otp: otp });
 
-  const { password, refreshToken, ...user } = await prismaService.user.update({
-    where: {
-      email: email,
-    },
-    data: {
+  try {
+    const { password, refreshToken, ...user } = await prismaService.user.update(
+      {
+        where: {
+          email: email,
+        },
+        data: {
+          email: newEmail,
+        },
+      }
+    );
+
+    const newAccessToken = authHelper.createAccessToken({
+      ...findUser,
       email: newEmail,
-    },
-  });
+    });
 
-  const newAccessToken = authHelper.createAccessToken({
-    ...findUser,
-    email: newEmail,
-  });
-
-  return { user, newAccessToken };
+    return { user, newAccessToken };
+  } catch (error) {
+    if (error.code === "P2002") {
+      throw new ResponseError(409, "email already exist");
+    }
+    throw new ResponseError(400, "failed to update email");
+  }
 };
 
 const updatePassword = async (updatePasswordRequest) => {
