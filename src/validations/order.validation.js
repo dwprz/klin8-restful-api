@@ -15,8 +15,8 @@ const createOrderRequest = z
       "PICK_UP_AND_DELIVERY",
     ]),
     paymentMethod: z.enum(["CASH", "BANK_TRANSFER", "E_WALLET"]),
-    whatsapp: z.string().max(20).optional(),
-    address: z.string().max(500),
+    whatsapp: z.string().max(20).nullable().optional(),
+    address: z.string().max(500).nullable().optional(),
   })
   .strict();
 

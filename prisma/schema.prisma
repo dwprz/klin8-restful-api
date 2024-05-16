@@ -55,7 +55,7 @@ model Order {
   serviceMode   ServiceMode
   paymentMethod PaymentMethod
   whatsapp      String?       @db.VarChar(20)
-  address       String        @db.VarChar(500)
+  address       String?       @db.VarChar(500)
   isDeleted     Boolean       @default(false)
   createdAt     DateTime      @default(now())
   updatedAt     DateTime?     @updatedAt
