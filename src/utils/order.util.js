@@ -42,7 +42,9 @@ const getStatusesOrders = async (orders) => {
       (status) => status.orderId === order.orderId
     );
 
-    return { ...order, statuses: filteredStatuses };
+    const { userId, ...restOrder } = order;
+
+    return { ...restOrder, statuses: filteredStatuses };
   });
 
   return result;

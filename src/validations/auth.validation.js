@@ -10,7 +10,7 @@ const verifyOtpRequest = z.object({
 const registerRequest = z
   .object({
     email: z.string().min(5).max(100),
-    fullName: z.string().min(5).max(100),
+    fullName: z.string().min(3).max(100),
     password: z.string().min(5).max(100),
   })
   .strict();
@@ -23,7 +23,7 @@ const authenticateRequest = z.object({
 const loginGoogleRequest = z
   .object({
     email: z.string().min(5).max(100),
-    fullName: z.string().min(5).max(100),
+    fullName: z.string().min(3).max(100),
     photoProfile: z.string().min(5).max(300).nullable(),
   })
   .strict();

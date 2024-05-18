@@ -50,7 +50,7 @@ CREATE TABLE "orders" (
     "serviceMode" "ServiceMode" NOT NULL,
     "paymentMethod" "PaymentMethod" NOT NULL,
     "whatsapp" VARCHAR(20),
-    "address" VARCHAR(500) NOT NULL,
+    "address" VARCHAR(500),
     "isDeleted" BOOLEAN NOT NULL DEFAULT false,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3),
