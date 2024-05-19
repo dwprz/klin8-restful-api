@@ -15,8 +15,8 @@ const updateUserRequest = z
   .object({
     email: z.string().min(5).max(100),
     fullName: z.string().min(3).max(100).optional(),
-    address: z.string().min(5).max(500).optional(),
-    whatsapp: z.string().max(20).optional(),
+    address: z.string().min(5).max(500).nullable().optional(),
+    whatsapp: z.string().max(20).nullable().optional(),
     password: z.string().min(5).max(100),
   })
   .strict();

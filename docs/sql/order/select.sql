@@ -115,10 +115,20 @@ WHERE
     AND 
     "isCurrentStatus" = TRUE;
 
+SELECT * FROM users;
 
 SELECT * FROM orders;
-SELECT * FROM statuses;
 
+SELECT * FROM statuses
+ORDER BY "statusId";
+
+SELECT o."customerName", o."orderId", s."statusId", s."statusName" FROM 
+orders as o
+LEFT JOIN
+statuses as s ON s."orderId" = o."orderId"
+ORDER BY "statusId";
+
+# 88, 89, 90, 91
   SELECT 
     * 
   FROM 
